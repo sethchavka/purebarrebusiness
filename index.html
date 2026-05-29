@@ -42,103 +42,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 
-/* ── PASSWORD GATE ── */
 #dashboard { display: none; }
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: #0E0E0D;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.gate-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 28px;
-  width: 320px;
-}
-.gate-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.8rem;
-  color: #F0EDE8;
-  letter-spacing: -0.5px;
-  text-align: center;
-  line-height: 1.2;
-}
-.gate-title em { font-style: italic; color: #FF7A42; }
-.gate-subtitle {
-  font-size: 0.62rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(240,237,232,0.35);
-  margin-top: -16px;
-  text-align: center;
-}
-.gate-input-wrap {
-  width: 100%;
-  position: relative;
-}
-.gate-input {
-  width: 100%;
-  background: #181816;
-  border: 1px solid rgba(240,237,232,0.12);
-  border-radius: 4px;
-  padding: 14px 48px 14px 16px;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.9rem;
-  color: #F0EDE8;
-  letter-spacing: 0.1em;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.gate-input:focus { border-color: rgba(255,122,66,0.5); }
-.gate-input.error { border-color: rgba(255,80,80,0.6); animation: shake 0.35s ease; }
-.gate-eye {
-  position: absolute;
-  right: 14px; top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: rgba(240,237,232,0.3);
-  font-size: 0.9rem;
-  user-select: none;
-  transition: color 0.2s;
-}
-.gate-eye:hover { color: rgba(240,237,232,0.7); }
-.gate-btn {
-  width: 100%;
-  padding: 13px;
-  background: #FF7A42;
-  color: #0E0E0D;
-  border: none;
-  border-radius: 4px;
-  font-family: 'Syne', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-}
-.gate-btn:hover { background: #FF8F5C; }
-.gate-btn:active { transform: scale(0.98); }
-.gate-error {
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255,80,80,0.8);
-  height: 14px;
-  text-align: center;
-  margin-top: -16px;
-}
-@keyframes shake {
-  0%,100%{ transform:translateX(0) }
-  20%{ transform:translateX(-6px) }
-  40%{ transform:translateX(6px) }
-  60%{ transform:translateX(-4px) }
-  80%{ transform:translateX(4px) }
-}
 
 body {
   background: var(--bg);
@@ -431,24 +335,97 @@ footer { padding:24px 64px; display:flex; justify-content:space-between; align-i
 header { animation:fadeDown 0.7s ease both; }
 .kpi-strip { animation:fadeUp 0.7s 0.1s ease both; }
 .section { animation:fadeUp 0.7s ease both; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  header {
+    padding: 24px 20px 20px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .header-right {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .header-title { font-size: 1.8rem; }
+  .header-subtitle { font-size: 0.58rem; letter-spacing: 0.12em; }
+
+  .loc-toggles { gap: 6px; }
+  .loc-btn { padding: 5px 10px; font-size: 0.6rem; }
+
+  .kpi-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .kpi-card {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .kpi-card:nth-child(2) { border-right: none; }
+  .kpi-val { font-size: 1.1rem; }
+  .kpi-total { font-size: 0.9rem; }
+
+  .section {
+    padding: 28px 20px;
+  }
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .section-note { display: none; }
+
+  .chart-controls { width: 100%; }
+  .quarter-tabs { width: 100%; justify-content: space-between; }
+  .q-tab { padding: 6px 10px; font-size: 0.58rem; flex: 1; text-align: center; }
+  .zoom-hint { display: none; }
+
+  .chart-wrap { height: 240px; padding: 10px 8px 6px; }
+
+  .two-col {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .year-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .year-card { padding: 16px; }
+  .year-rev { font-size: 1.05rem; }
+
+  .fee-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { font-size: 0.6rem; min-width: 600px; }
+  th { padding: 10px 10px; font-size: 0.52rem; }
+  td { padding: 9px 10px; }
+
+  .insights-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .insight-card { padding: 18px; }
+
+  footer {
+    padding: 20px;
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .kpi-strip { grid-template-columns: 1fr 1fr; }
+  .kpi-val { font-size: 1rem; }
+  .year-grid { grid-template-columns: 1fr 1fr; }
+  .loc-btn span:not(.loc-dot) { display: none; }
+  .loc-btn { padding: 6px 10px; }
+}
 </style>
 </head>
 <body>
-
-<div id="gate">
-  <div class="gate-box">
-    <div>
-      <div class="gate-title">Pure Barre<br><em>Analytics</em></div>
-      <div class="gate-subtitle">Winston-Salem · Private</div>
-    </div>
-    <div class="gate-input-wrap">
-      <input class="gate-input" id="gateInput" type="password" placeholder="Enter password" autocomplete="current-password" />
-      <span class="gate-eye" id="gateEye" onclick="toggleGateEye()">👁</span>
-    </div>
-    <div class="gate-error" id="gateError"></div>
-    <button class="gate-btn" onclick="checkPassword()">Enter</button>
-  </div>
-</div>
 
 <div id="dashboard">
 <header>
@@ -617,35 +594,24 @@ header { animation:fadeDown 0.7s ease both; }
 const PASS = 'pbarre';
 
 function checkPassword() {
-  const val = document.getElementById('gateInput').value;
-  if (val === PASS) {
-    const gate = document.getElementById('gate');
-    gate.style.opacity = '0';
-    gate.style.transition = 'opacity 0.4s ease';
-    setTimeout(() => gate.remove(), 400);
+  if (localStorage.getItem('pb_auth') === PASS) {
+    initDashboard();
+    return;
+  }
+  const input = prompt('Enter password:');
+  if (input === PASS) {
+    localStorage.setItem('pb_auth', PASS);
+    initDashboard();
+  } else if (input !== null) {
+    // Only show error if they actually typed something (not cancelled)
+    document.getElementById('dashboard').innerHTML =
+      '<p style="font-family:monospace;padding:40px;color:#888;text-align:center">Incorrect password. Please refresh to try again.</p>';
     document.getElementById('dashboard').style.display = 'block';
-  } else {
-    const input = document.getElementById('gateInput');
-    const err   = document.getElementById('gateError');
-    input.classList.remove('error');
-    void input.offsetWidth; // reflow to re-trigger animation
-    input.classList.add('error');
-    err.textContent = 'Incorrect password';
-    setTimeout(() => { input.classList.remove('error'); err.textContent = ''; }, 2000);
   }
 }
 
-function toggleGateEye() {
-  const input = document.getElementById('gateInput');
-  const eye   = document.getElementById('gateEye');
-  if (input.type === 'password') { input.type = 'text'; eye.textContent = '🙈'; }
-  else { input.type = 'password'; eye.textContent = '👁'; }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('gateInput');
-  if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
-});
+function initDashboard() {
+  document.getElementById('dashboard').style.display = 'block';
 
 // ── DATA ──────────────────────────────────────────────────────────────────
 const raw8375 = [
@@ -1137,6 +1103,10 @@ buildNetChart();
 document.getElementById('mainChart').addEventListener('dblclick', () => {
   if (mainChart) mainChart.resetZoom();
 });
+
+} // end initDashboard()
+
+checkPassword();
 </script>
 </div><!-- /#dashboard -->
 </body>
