@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark" style="visibility:hidden">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -43,7 +43,7 @@
 html { scroll-behavior: smooth; }
 
 /* ── PASSWORD GATE ── */
-#gate {
+#dashboard { display: none; }
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -450,6 +450,7 @@ header { animation:fadeDown 0.7s ease both; }
   </div>
 </div>
 
+<div id="dashboard">
 <header>
   <div class="header-left">
     <div class="header-title">Pure Barre<br><em>Location Analytics</em></div>
@@ -622,7 +623,7 @@ function checkPassword() {
     gate.style.opacity = '0';
     gate.style.transition = 'opacity 0.4s ease';
     setTimeout(() => gate.remove(), 400);
-    document.documentElement.style.visibility = 'visible';
+    document.getElementById('dashboard').style.display = 'block';
   } else {
     const input = document.getElementById('gateInput');
     const err   = document.getElementById('gateError');
@@ -1137,5 +1138,6 @@ document.getElementById('mainChart').addEventListener('dblclick', () => {
   if (mainChart) mainChart.resetZoom();
 });
 </script>
+</div><!-- /#dashboard -->
 </body>
 </html>
