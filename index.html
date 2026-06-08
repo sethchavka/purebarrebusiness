@@ -807,6 +807,10 @@ function setYoyLoc(loc, btn) {
   buildYoyChart();
 }
 
+// ── FORMATTERS (global so yScale can use them) ────────────────────────────
+const fmt  = v => '$' + Math.round(v).toLocaleString();
+const fmtK = v => '$' + (v/1000).toFixed(1) + 'k';
+
 // ── TOOLTIP / SCALE HELPERS ───────────────────────────────────────────────
 function ttDefaults() {
   return {
@@ -929,8 +933,6 @@ function initDashboard() {
     {y:2026,m:'May',mn:5,rev:36314.29,cf:1329.81,of:3764.86,net:31668.63},
   ];
 
-  const fmt  = v => '$' + Math.round(v).toLocaleString();
-  const fmtK = v => '$' + (v/1000).toFixed(1) + 'k';
   const MOS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   function buildTL(data) {
@@ -1239,7 +1241,7 @@ function initDashboard() {
 }
 
 // placeholder so global ref works before initDashboard runs
-let refreshAllCharts = () => {};
+var refreshAllCharts = () => {};
 
 checkPassword();
 </script>
