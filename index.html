@@ -610,11 +610,23 @@ header { animation:fadeDown 0.7s ease both; }
         <div class="section-title">Year-over-Year Comparison</div>
         <div class="section-note">Same month across years</div>
       </div>
-      <div class="chart-controls">
-        <div class="quarter-tabs">
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:center">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)">Location</div>
+        <div class="quarter-tabs" id="yoyLocTabs">
           <button class="q-tab active" onclick="setYoyLoc('both',this)">Both</button>
           <button class="q-tab" onclick="setYoyLoc('a',this)">Reynolda</button>
           <button class="q-tab" onclick="setYoyLoc('b',this)">Stratford</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)">Years</div>
+        <div class="quarter-tabs" id="yoyYearTabs">
+          <button class="q-tab active" onclick="toggleYoyYear(2023,this)">2023</button>
+          <button class="q-tab active" onclick="toggleYoyYear(2024,this)">2024</button>
+          <button class="q-tab active" onclick="toggleYoyYear(2025,this)">2025</button>
+          <button class="q-tab active" onclick="toggleYoyYear(2026,this)">2026</button>
         </div>
       </div>
     </div>
@@ -750,6 +762,7 @@ let isDark = true;
 let showA = true, showB = true;
 let currentRange = 'all';
 let yoyLoc = 'both';
+let yoyYears = new Set([2023, 2024, 2025, 2026]);
 let mainChart, seasonChart, netChart, momChart, rollingChart, yoyChart,
     gapChart, netPctChart, seasonIndexChart, feeStackChart, projChart;
 
@@ -802,8 +815,21 @@ function setRange(range, btn) {
 // ── YOY LOC ───────────────────────────────────────────────────────────────
 function setYoyLoc(loc, btn) {
   yoyLoc = loc;
-  btn.closest('.chart-controls').querySelectorAll('.q-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#yoyLocTabs .q-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  buildYoyChart();
+}
+
+function toggleYoyYear(year, btn) {
+  // Must keep at least one year active
+  if (yoyYears.has(year) && yoyYears.size === 1) return;
+  if (yoyYears.has(year)) {
+    yoyYears.delete(year);
+    btn.classList.remove('active');
+  } else {
+    yoyYears.add(year);
+    btn.classList.add('active');
+  }
   buildYoyChart();
 }
 
@@ -1045,17 +1071,17 @@ function initDashboard() {
   function buildYoyChart(){
     const c=getThemeColors();
     if(yoyChart)yoyChart.destroy();
-    const yrs=[2023,2024,2025,2026];
-    const yrColors=['#6B7FD7','#FF7A42','#22D4A6','#F5C842'];
+    const yrs=[2023,2024,2025,2026].filter(y=>yoyYears.has(y));
+    const yrColors={2023:'#6B7FD7',2024:'#FF7A42',2025:'#22D4A6',2026:'#F5C842'};
     const datasets=[];
-    yrs.forEach((y,yi)=>{
+    yrs.forEach(y=>{
       if(yoyLoc==='both'||yoyLoc==='a'){
         const d=MOS.map((_,i)=>{const r=t8375.find(x=>x.y===y&&x.mn===i+1);return r?r.rev:null;});
-        if(d.some(v=>v!=null))datasets.push({label:`Reynolda ${y}`,data:d,borderColor:yrColors[yi],backgroundColor:'transparent',borderWidth:1.5,pointRadius:3,pointHoverRadius:5,tension:0.3,spanGaps:false,borderDash:yoyLoc==='both'?[4,3]:[]});
+        if(d.some(v=>v!=null))datasets.push({label:`Reynolda ${y}`,data:d,borderColor:yrColors[y],backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointHoverRadius:6,tension:0.3,spanGaps:false,borderDash:yoyLoc==='both'?[4,3]:[]});
       }
       if(yoyLoc==='both'||yoyLoc==='b'){
         const d=MOS.map((_,i)=>{const r=t8586.find(x=>x.y===y&&x.mn===i+1);return r?r.rev:null;});
-        if(d.some(v=>v!=null))datasets.push({label:`Stratford ${y}`,data:d,borderColor:yrColors[yi],backgroundColor:'transparent',borderWidth:1.5,pointRadius:3,pointHoverRadius:5,tension:0.3,spanGaps:false,borderDash:yoyLoc==='both'?[]:[4,3]});
+        if(d.some(v=>v!=null))datasets.push({label:`Stratford ${y}`,data:d,borderColor:yrColors[y],backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointHoverRadius:6,tension:0.3,spanGaps:false,borderDash:yoyLoc==='both'?[]:[4,3]});
       }
     });
     yoyChart=new Chart(document.getElementById('yoyChart'),{type:'line',data:{labels:MOS,datasets},
