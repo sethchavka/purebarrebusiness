@@ -423,15 +423,52 @@ header { animation:fadeDown 0.7s ease both; }
   .loc-btn span:not(.loc-dot) { display: none; }
   .loc-btn { padding: 6px 10px; }
 }
+
+/* ── TABS ── */
+.tab-nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 64px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  padding: 14px 22px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  transition: color 0.2s, border-color 0.2s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--text); border-bottom-color: var(--loc-a); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+@media (max-width: 768px) {
+  .tab-nav { padding: 0 20px; }
+  .tab-btn { padding: 12px 14px; font-size: 0.58rem; }
+}
 </style>
 </head>
 <body>
 
 <div id="dashboard">
+
+<!-- HEADER -->
 <header>
   <div class="header-left">
     <div class="header-title">Pure Barre<br><em>Location Analytics</em></div>
-    <div class="header-subtitle">Reynolda Village (8375) · Stratford Road (8586) · Dec 2022 – Apr 2026</div>
+    <div class="header-subtitle">Reynolda Village (8375) · Stratford Road (8586) · <span id="dateRange">—</span></div>
   </div>
   <div class="header-right">
     <div class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
@@ -491,191 +528,206 @@ header { animation:fadeDown 0.7s ease both; }
   </div>
 </div>
 
-<!-- MAIN CHART -->
-<div class="section">
-  <div class="section-header">
-    <div class="section-title-wrap">
-      <div class="section-title">Monthly Revenue</div>
-      <div class="section-note">Total Revenue Subject to Franchise Fee</div>
-    </div>
-    <div class="chart-controls">
-      <div class="quarter-tabs" id="quarterTabs">
-        <button class="q-tab active" data-range="all" onclick="setRange('all',this)">All</button>
-        <button class="q-tab" data-range="2023" onclick="setRange('2023',this)">2023</button>
-        <button class="q-tab" data-range="2024" onclick="setRange('2024',this)">2024</button>
-        <button class="q-tab" data-range="2025" onclick="setRange('2025',this)">2025</button>
-        <button class="q-tab" data-range="2026" onclick="setRange('2026',this)">2026</button>
+<!-- TAB NAV -->
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('overview',this)">Overview</button>
+  <button class="tab-btn" onclick="switchTab('trends',this)">Growth & Trends</button>
+  <button class="tab-btn" onclick="switchTab('yoy',this)">Year-over-Year</button>
+  <button class="tab-btn" onclick="switchTab('seasonal',this)">Seasonal</button>
+  <button class="tab-btn" onclick="switchTab('fees',this)">Fees & Net</button>
+  <button class="tab-btn" onclick="switchTab('projection',this)">Projection</button>
+  <button class="tab-btn" onclick="switchTab('insights',this)">Insights</button>
+</nav>
+
+<!-- ══ TAB: OVERVIEW ══ -->
+<div class="tab-pane active" id="tab-overview">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">Monthly Revenue</div>
+        <div class="section-note">Total Revenue Subject to Franchise Fee</div>
       </div>
-      <div class="zoom-hint">Drag to zoom · Dbl-click to reset</div>
-    </div>
-  </div>
-  <div class="chart-wrap">
-    <canvas id="mainChart"></canvas>
-  </div>
-</div>
-
-<!-- ANNUAL GRID -->
-<div class="section">
-  <div class="section-header">
-    <div class="section-title-wrap">
-      <div class="section-title">Annual Revenue</div>
-      <div class="section-note">Year-by-year totals</div>
-    </div>
-  </div>
-  <div class="year-grid" id="yearGrid"></div>
-</div>
-
-<!-- MOM GROWTH + ROLLING AVG -->
-<div class="section">
-  <div class="section-header">
-    <div class="section-title-wrap">
-      <div class="section-title">Growth & Trend</div>
-    </div>
-  </div>
-  <div class="two-col">
-    <div class="mini-chart-wrap">
-      <div class="mini-chart-title">Month-over-Month Revenue Growth (%)</div>
-      <canvas id="momChart" height="180"></canvas>
-    </div>
-    <div class="mini-chart-wrap">
-      <div class="mini-chart-title">3-Month Rolling Average Revenue</div>
-      <canvas id="rollingChart" height="180"></canvas>
-    </div>
-  </div>
-</div>
-
-<!-- YEAR-OVER-YEAR COMPARISON -->
-<div class="section">
-  <div class="section-header">
-    <div class="section-title-wrap">
-      <div class="section-title">Year-over-Year Comparison</div>
-      <div class="section-note">Same month across years</div>
-    </div>
-    <div class="chart-controls">
-      <div class="quarter-tabs">
-        <button class="q-tab active" onclick="setYoyLoc('both',this)">Both</button>
-        <button class="q-tab" onclick="setYoyLoc('a',this)">Reynolda</button>
-        <button class="q-tab" onclick="setYoyLoc('b',this)">Stratford</button>
+      <div class="chart-controls">
+        <div class="quarter-tabs" id="quarterTabs">
+          <button class="q-tab active" onclick="setRange('all',this)">All</button>
+          <button class="q-tab" onclick="setRange('2023',this)">2023</button>
+          <button class="q-tab" onclick="setRange('2024',this)">2024</button>
+          <button class="q-tab" onclick="setRange('2025',this)">2025</button>
+          <button class="q-tab" onclick="setRange('2026',this)">2026</button>
+        </div>
+        <div class="zoom-hint">Drag to zoom · Dbl-click to reset</div>
       </div>
     </div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
   </div>
-  <div class="chart-wrap" style="height:280px">
-    <canvas id="yoyChart"></canvas>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">Annual Revenue</div>
+        <div class="section-note">Year-by-year totals</div>
+      </div>
+    </div>
+    <div class="year-grid" id="yearGrid"></div>
   </div>
 </div>
 
-<!-- LOCATION GAP + NET ACH % -->
-<div class="section">
-  <div class="section-header">
-    <div class="section-title-wrap">
-      <div class="section-title">Location Gap & Net ACH</div>
+<!-- ══ TAB: GROWTH & TRENDS ══ -->
+<div class="tab-pane" id="tab-trends">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">Month-over-Month Growth</div>
+        <div class="section-note">% change vs prior month</div>
+      </div>
     </div>
+    <div class="chart-wrap"><canvas id="momChart"></canvas></div>
   </div>
-  <div class="two-col">
-    <div class="mini-chart-wrap">
-      <div class="mini-chart-title">Monthly Revenue Gap (Stratford minus Reynolda)</div>
-      <canvas id="gapChart" height="180"></canvas>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">3-Month Rolling Average</div>
+        <div class="section-note">Smoothed revenue trend</div>
+      </div>
     </div>
-    <div class="mini-chart-wrap">
-      <div class="mini-chart-title">Net ACH as % of Gross Revenue</div>
-      <canvas id="netPctChart" height="180"></canvas>
+    <div class="chart-wrap"><canvas id="rollingChart"></canvas></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">Location Gap</div>
+        <div class="section-note">Stratford minus Reynolda each month</div>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="gapChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ══ TAB: YEAR-OVER-YEAR ══ -->
+<div class="tab-pane" id="tab-yoy">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">Year-over-Year Comparison</div>
+        <div class="section-note">Same month across years</div>
+      </div>
+      <div class="chart-controls">
+        <div class="quarter-tabs">
+          <button class="q-tab active" onclick="setYoyLoc('both',this)">Both</button>
+          <button class="q-tab" onclick="setYoyLoc('a',this)">Reynolda</button>
+          <button class="q-tab" onclick="setYoyLoc('b',this)">Stratford</button>
+        </div>
+      </div>
+    </div>
+    <div class="chart-wrap" style="height:360px"><canvas id="yoyChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ══ TAB: SEASONAL ══ -->
+<div class="tab-pane" id="tab-seasonal">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">Average Revenue by Month</div>
+        <div class="section-note">All years averaged together</div>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="seasonChart"></canvas></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">Seasonal Index</div>
+        <div class="section-note">100 = each location's annual average</div>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="seasonIndexChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ══ TAB: FEES & NET ══ -->
+<div class="tab-pane" id="tab-fees">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">Annual Fee Breakdown</div>
+        <div class="section-note">ClubReady vs Other fees stacked</div>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="feeStackChart"></canvas></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">Net ACH Transfer</div>
+        <div class="section-note">Available months</div>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="netChart"></canvas></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">Net ACH as % of Gross Revenue</div>
+        <div class="section-note">Fee efficiency over time</div>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="netPctChart"></canvas></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">Fee Analysis by Year</div>
+        <div class="section-note">ClubReady + Other Fees</div>
+      </div>
+    </div>
+    <div class="fee-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Reynolda · ClubReady</th><th>Reynolda · Other</th><th>Reynolda · Total</th>
+            <th>Stratford · ClubReady</th><th>Stratford · Other</th><th>Stratford · Total</th>
+            <th>Δ</th>
+          </tr>
+        </thead>
+        <tbody id="feeTableBody"></tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<!-- SEASONAL + SEASONAL INDEX -->
-<div class="section">
-  <div class="section-header">
-    <div class="section-title-wrap">
-      <div class="section-title">Seasonal Patterns</div>
+<!-- ══ TAB: PROJECTION ══ -->
+<div class="tab-pane" id="tab-projection">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">2026 Revenue Projection</div>
+        <div class="section-note">Linear trend from 2025–2026 · dashed = estimated</div>
+      </div>
     </div>
-  </div>
-  <div class="two-col">
-    <div class="mini-chart-wrap">
-      <div class="mini-chart-title">Avg Revenue by Calendar Month (all years)</div>
-      <canvas id="seasonChart" height="180"></canvas>
-    </div>
-    <div class="mini-chart-wrap">
-      <div class="mini-chart-title">Seasonal Index (vs annual average = 100)</div>
-      <canvas id="seasonIndexChart" height="180"></canvas>
-    </div>
+    <div class="chart-wrap" style="height:360px"><canvas id="projChart"></canvas></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px" id="projKpis"></div>
   </div>
 </div>
 
-<!-- FEE BREAKDOWN STACKED + NET ACH TOTAL -->
-<div class="section">
-  <div class="section-header">
-    <div class="section-title-wrap">
-      <div class="section-title">Fee & Net Analysis</div>
+<!-- ══ TAB: INSIGHTS ══ -->
+<div class="tab-pane" id="tab-insights">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">Key Insights</div>
+      </div>
     </div>
+    <div class="insights-grid" id="insightsGrid"></div>
   </div>
-  <div class="two-col">
-    <div class="mini-chart-wrap">
-      <div class="mini-chart-title">Annual Fee Breakdown — ClubReady vs Other (Stacked)</div>
-      <canvas id="feeStackChart" height="200"></canvas>
-    </div>
-    <div class="mini-chart-wrap">
-      <div class="mini-chart-title">Net ACH Transfer — Available Months</div>
-      <canvas id="netChart" height="200"></canvas>
-    </div>
-  </div>
-</div>
-
-<!-- PROJECTION -->
-<div class="section">
-  <div class="section-header">
-    <div class="section-title-wrap">
-      <div class="section-title">2026 Projection</div>
-      <div class="section-note">Linear trend · remaining months estimated</div>
-    </div>
-  </div>
-  <div class="chart-wrap" style="height:280px">
-    <canvas id="projChart"></canvas>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px" id="projKpis"></div>
-</div>
-
-<!-- FEE TABLE -->
-<div class="section">
-  <div class="section-header">
-    <div class="section-title-wrap">
-      <div class="section-title">Fee Analysis by Year</div>
-      <div class="section-note">ClubReady + Other Fees</div>
-    </div>
-  </div>
-  <div class="fee-table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Year</th>
-          <th>Reynolda · ClubReady</th>
-          <th>Reynolda · Other</th>
-          <th>Reynolda · Total</th>
-          <th>Stratford · ClubReady</th>
-          <th>Stratford · Other</th>
-          <th>Stratford · Total</th>
-          <th>Δ Stratford vs Reynolda</th>
-        </tr>
-      </thead>
-      <tbody id="feeTableBody"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- INSIGHTS -->
-<div class="section">
-  <div class="section-header">
-    <div class="section-title-wrap">
-      <div class="section-title">Key Insights</div>
-    </div>
-  </div>
-  <div class="insights-grid" id="insightsGrid"></div>
 </div>
 
 <footer>
   <span>Pure Barre Remittance Reports · 2022–2026</span>
   <span>Locations 8375 & 8586 · Winston-Salem, NC</span>
 </footer>
+
+</div><!-- /#dashboard -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
@@ -688,596 +740,508 @@ function checkPassword() {
   const input = prompt('Enter password:');
   if (input === PASS) { localStorage.setItem('pb_auth', PASS); initDashboard(); }
   else if (input !== null) {
-    document.getElementById('dashboard').innerHTML = '<p style="font-family:monospace;padding:40px;color:#888;text-align:center">Incorrect password. Please refresh to try again.</p>';
+    document.getElementById('dashboard').innerHTML = '<p style="font-family:monospace;padding:40px;color:#888;text-align:center">Incorrect password. Refresh to try again.</p>';
     document.getElementById('dashboard').style.display = 'block';
   }
 }
 
-function initDashboard() {
-  document.getElementById('dashboard').style.display = 'block';
-
-// ── DATA ──────────────────────────────────────────────────────────────────
-const raw8375 = [
-  {y:2022,m:'Dec',mn:12,rev:16350.28,cf:566.91,of:1725.85,net:14452.17},
-  {y:2023,m:'Jan',mn:1,rev:31082.91,cf:1086.78,of:3271.20,net:26969.08},
-  {y:2023,m:'Feb',mn:2,rev:34296.81,cf:1207.39,of:3560.52,net:29744.14},
-  {y:2023,m:'Mar',mn:3,rev:34619.23,cf:1231.64,of:3589.53,net:29877.26},
-  {y:2023,m:'Apr',mn:4,rev:34770.43,cf:1248.21,of:3603.12,net:30405.88},
-  {y:2023,m:'May',mn:5,rev:27921.96,cf:994.09,of:2992.62,net:24339.32},
-  {y:2023,m:'Jun',mn:6,rev:25550.81,cf:899.17,of:2773.36,net:22164.70},
-  {y:2023,m:'Jul',mn:7,rev:24939.76,cf:891.86,of:2749.17,net:21640.13},
-  {y:2023,m:'Aug',mn:8,rev:30345.13,cf:1052.64,of:3229.27,net:26336.61},
-  {y:2023,m:'Sep',mn:9,rev:34948.87,cf:1222.71,of:3683.36,net:30582.84},
-  {y:2023,m:'Oct',mn:10,rev:37933.98,cf:1323.42,of:3912.30,net:33154.64},
-  {y:2023,m:'Nov',mn:11,rev:41251.16,cf:1441.87,of:4210.82,net:36075.80},
-  {y:2023,m:'Dec',mn:12,rev:30875.35,cf:1099.14,of:3285.39,net:26961.14},
-  {y:2024,m:'Jan',mn:1,rev:35003.91,cf:1237.17,of:3648.56,net:30626.61},
-  {y:2024,m:'Feb',mn:2,rev:35270.33,cf:1259.76,of:3672.55,net:30746.76},
-  {y:2024,m:'Mar',mn:3,rev:37264.97,cf:1319.87,of:3852.06,net:32571.30},
-  {y:2024,m:'Apr',mn:4,rev:32351.60,cf:1179.32,of:3409.85,net:28176.03},
-  {y:2024,m:'May',mn:5,rev:29166.55,cf:1036.19,of:3121.87,net:null},
-  {y:2024,m:'Jun',mn:6,rev:26402.78,cf:939.13,of:2893.98,net:23106.88},
-  {y:2024,m:'Jul',mn:7,rev:25206.36,cf:886.73,of:2766.78,net:22061.65},
-  {y:2024,m:'Aug',mn:8,rev:28236.76,cf:984.27,of:3037.96,net:null},
-  {y:2024,m:'Sep',mn:9,rev:33476.61,cf:1175.07,of:3501.93,net:29243.86},
-  {y:2024,m:'Oct',mn:10,rev:36430.61,cf:1275.25,of:3774.34,net:null},
-  {y:2024,m:'Nov',mn:11,rev:36240.43,cf:1279.45,of:3759.86,net:31994.90},
-  {y:2024,m:'Dec',mn:12,rev:36673.92,cf:1276.01,of:3797.30,net:null},
-  {y:2025,m:'Jan',mn:1,rev:32352.86,cf:1125.53,of:3409.99,net:28416.55},
-  {y:2025,m:'Feb',mn:2,rev:33939.49,cf:1188.44,of:3548.78,net:null},
-  {y:2025,m:'Mar',mn:3,rev:34551.52,cf:1206.07,of:3607.83,net:30285.55},
-  {y:2025,m:'Apr',mn:4,rev:33121.28,cf:1154.61,of:3478.36,net:null},
-  {y:2025,m:'May',mn:5,rev:30674.47,cf:1066.03,of:3258.95,net:27125.07},
-  {y:2025,m:'Jun',mn:6,rev:30674.47,cf:1066.03,of:3258.95,net:27125.07},
-  {y:2025,m:'Jul',mn:7,rev:30433.25,cf:1058.86,of:3237.20,net:26608.12},
-  {y:2025,m:'Aug',mn:8,rev:32624.86,cf:1142.27,of:3433.48,net:null},
-  {y:2025,m:'Sep',mn:9,rev:36759.89,cf:1281.53,of:3806.64,net:32251.91},
-  {y:2025,m:'Oct',mn:10,rev:38687.74,cf:1351.05,of:3980.09,net:33728.29},
-  {y:2025,m:'Nov',mn:11,rev:38357.33,cf:1335.05,of:3950.38,net:33679.22},
-  {y:2025,m:'Dec',mn:12,rev:33744.54,cf:1192.59,of:3532.04,net:null},
-  {y:2026,m:'Jan',mn:1,rev:33901.49,cf:1189.82,of:3549.34,net:null},
-  {y:2026,m:'Feb',mn:2,rev:36032.23,cf:1255.78,of:3741.09,net:null},
-  {y:2026,m:'Mar',mn:3,rev:37375.83,cf:1362.03,of:3862.07,net:32454.69},
-  {y:2026,m:'Apr',mn:4,rev:34026.57,cf:1245.29,of:3560.59,net:29521.72},
-  {y:2026,m:'May',mn:5,rev:29733.01,cf:1116.01,of:3174.21,net:25592.36},
-];
-const raw8586 = [
-  {y:2022,m:'Dec',mn:12,rev:17727.20,cf:644.55,of:1884.52,net:16016.77},
-  {y:2023,m:'Jan',mn:1,rev:36601.79,cf:1275.24,of:3767.96,net:32126.77},
-  {y:2023,m:'Feb',mn:2,rev:35519.73,cf:1236.89,of:3670.58,net:30819.37},
-  {y:2023,m:'Mar',mn:3,rev:33684.41,cf:1189.56,of:3505.37,net:29270.45},
-  {y:2023,m:'Apr',mn:4,rev:32912.62,cf:1154.42,of:3435.92,net:28778.14},
-  {y:2023,m:'May',mn:5,rev:36137.96,cf:1248.89,of:3726.21,net:31638.86},
-  {y:2023,m:'Jun',mn:6,rev:32891.72,cf:1149.97,of:3442.82,net:28704.48},
-  {y:2023,m:'Jul',mn:7,rev:33958.57,cf:1169.91,of:3554.45,net:29630.36},
-  {y:2023,m:'Aug',mn:8,rev:33932.44,cf:1182.97,of:3568.07,net:29445.97},
-  {y:2023,m:'Sep',mn:9,rev:34878.04,cf:1225.32,of:3637.22,net:30501.67},
-  {y:2023,m:'Oct',mn:10,rev:39368.28,cf:1367.90,of:4041.37,net:34235.36},
-  {y:2023,m:'Nov',mn:11,rev:41207.63,cf:1436.77,of:4206.90,net:36149.88},
-  {y:2023,m:'Dec',mn:12,rev:37577.51,cf:1331.19,of:3892.69,net:32790.56},
-  {y:2024,m:'Jan',mn:1,rev:38572.27,cf:1349.65,of:3989.05,net:33826.75},
-  {y:2024,m:'Feb',mn:2,rev:39034.28,cf:1361.66,of:4010.40,net:33898.30},
-  {y:2024,m:'Mar',mn:3,rev:38088.64,cf:1353.35,of:3926.19,net:33296.51},
-  {y:2024,m:'Apr',mn:4,rev:35918.93,cf:1290.58,of:3729.59,net:31376.34},
-  {y:2024,m:'May',mn:5,rev:35378.86,cf:1233.63,of:3717.93,net:null},
-  {y:2024,m:'Jun',mn:6,rev:32166.19,cf:1136.33,of:3393.20,net:27908.35},
-  {y:2024,m:'Jul',mn:7,rev:34215.59,cf:1189.29,of:3577.63,net:29986.41},
-  {y:2024,m:'Aug',mn:8,rev:33965.58,cf:1180.41,of:3555.09,net:29881.42},
-  {y:2024,m:'Sep',mn:9,rev:38989.58,cf:1355.16,of:4003.16,net:null},
-  {y:2024,m:'Oct',mn:10,rev:42589.14,cf:1482.34,of:4331.25,net:37415.51},
-  {y:2024,m:'Nov',mn:11,rev:41965.72,cf:1452.81,of:4273.57,net:null},
-  {y:2024,m:'Dec',mn:12,rev:40082.57,cf:1382.71,of:4100.14,net:null},
-  {y:2025,m:'Jan',mn:1,rev:38599.90,cf:1334.30,of:4026.61,net:null},
-  {y:2025,m:'Feb',mn:2,rev:40328.23,cf:1414.87,of:4154.25,net:null},
-  {y:2025,m:'Mar',mn:3,rev:39898.21,cf:1385.00,of:4085.88,net:null},
-  {y:2025,m:'Apr',mn:4,rev:37963.61,cf:1321.82,of:3914.95,net:null},
-  {y:2025,m:'May',mn:5,rev:35842.76,cf:1250.13,of:3723.40,net:null},
-  {y:2025,m:'Jun',mn:6,rev:36991.94,cf:1280.49,of:3825.17,net:null},
-  {y:2025,m:'Jul',mn:7,rev:36290.06,cf:1270.75,of:3793.97,net:null},
-  {y:2025,m:'Aug',mn:8,rev:36995.58,cf:1279.44,of:3827.81,net:32539.07},
-  {y:2025,m:'Sep',mn:9,rev:37225.74,cf:1310.09,of:3848.58,net:32593.89},
-  {y:2025,m:'Oct',mn:10,rev:42589.14,cf:1482.34,of:4331.25,net:37415.51},
-  {y:2025,m:'Nov',mn:11,rev:42191.52,cf:1464.00,of:4295.44,net:null},
-  {y:2025,m:'Dec',mn:12,rev:36007.20,cf:1272.69,of:3732.81,net:null},
-  {y:2026,m:'Jan',mn:1,rev:32246.82,cf:1137.15,of:3400.42,net:null},
-  {y:2026,m:'Feb',mn:2,rev:36728.13,cf:1271.00,of:3803.75,net:null},
-  {y:2026,m:'Mar',mn:3,rev:36814.38,cf:1328.96,of:3811.48,net:null},
-  {y:2026,m:'Apr',mn:4,rev:36808.59,cf:1340.94,of:3810.97,net:32030.10},
-  {y:2026,m:'May',mn:5,rev:36314.29,cf:1329.81,of:3764.86,net:31668.63},
-];
-
-// ── HELPERS ───────────────────────────────────────────────────────────────
-const fmt  = v => '$' + Math.round(v).toLocaleString();
-const fmtK = v => '$' + (v/1000).toFixed(1) + 'k';
-const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-function buildTimeline(data) {
-  const map = {};
-  data.forEach(d => {
-    const key = d.y*100+d.mn;
-    if (!map[key] || (d.net !== null && map[key].net === null)) map[key] = d;
-  });
-  return Object.values(map).sort((a,b)=>(a.y*100+a.mn)-(b.y*100+b.mn));
-}
-const t8375 = buildTimeline(raw8375);
-const t8586 = buildTimeline(raw8586);
-
-const allKeys = new Set([...t8375.map(d=>d.y*100+d.mn),...t8586.map(d=>d.y*100+d.mn)]);
-const sortedKeys = [...allKeys].sort((a,b)=>a-b);
-const map8375 = Object.fromEntries(t8375.map(d=>[d.y*100+d.mn,d]));
-const map8586 = Object.fromEntries(t8586.map(d=>[d.y*100+d.mn,d]));
-
-const allLabels = sortedKeys.map(k=>{
-  const d=map8375[k]||map8586[k];
-  return (d.mn===1||d.mn===4||d.mn===7||d.mn===10)?`Q${Math.ceil(d.mn/3)} ${d.y}`:'';
-});
-const allFullLabels = sortedKeys.map(k=>{const d=map8375[k]||map8586[k];return d.m+' '+d.y;});
-const allRev8375 = sortedKeys.map(k=>map8375[k]?.rev??null);
-const allRev8586 = sortedKeys.map(k=>map8586[k]?.rev??null);
-
-// KPIs
-const totalRev8375=t8375.reduce((s,d)=>s+d.rev,0);
-const totalRev8586=t8586.reduce((s,d)=>s+d.rev,0);
-const avgRev8375=totalRev8375/t8375.length;
-const avgRev8586=totalRev8586/t8586.length;
-const peakRev8375=Math.max(...t8375.map(d=>d.rev));
-const peakRev8586=Math.max(...t8586.map(d=>d.rev));
-const totalFees8375=t8375.reduce((s,d)=>s+d.cf+d.of,0);
-const totalFees8586=t8586.reduce((s,d)=>s+d.cf+d.of,0);
-
-document.getElementById('kpi-rev-a').textContent=fmtK(totalRev8375);
-document.getElementById('kpi-rev-b').textContent=fmtK(totalRev8586);
-document.getElementById('kpi-avg-a').textContent=fmtK(avgRev8375);
-document.getElementById('kpi-avg-b').textContent=fmtK(avgRev8586);
-document.getElementById('kpi-peak-a').textContent=fmtK(peakRev8375);
-document.getElementById('kpi-peak-b').textContent=fmtK(peakRev8586);
-document.getElementById('kpi-fees-a').textContent=fmtK(totalFees8375);
-document.getElementById('kpi-fees-b').textContent=fmtK(totalFees8586);
-
-const combinedRev=totalRev8375+totalRev8586;
-const combinedAvg=avgRev8375+avgRev8586;
-const combinedFees=totalFees8375+totalFees8586;
-const bestCombined=sortedKeys.reduce((best,k)=>{const a=map8375[k]?.rev??0,b=map8586[k]?.rev??0;return(a+b)>best?(a+b):best;},0);
-document.getElementById('kpi-rev-total').textContent=fmtK(combinedRev);
-document.getElementById('kpi-avg-total').textContent=fmtK(combinedAvg);
-document.getElementById('kpi-peak-total').textContent=fmtK(bestCombined);
-document.getElementById('kpi-fees-total').textContent=fmtK(combinedFees);
+// ── GLOBAL STATE (must be global for onclick handlers) ────────────────────
+let isDark = true;
+let showA = true, showB = true;
+let currentRange = 'all';
+let yoyLoc = 'both';
+let mainChart, seasonChart, netChart, momChart, rollingChart, yoyChart,
+    gapChart, netPctChart, seasonIndexChart, feeStackChart, projChart;
 
 // ── THEME ─────────────────────────────────────────────────────────────────
-let isDark=true;
-function getThemeColors(){
-  return{
-    gridColor:isDark?'rgba(240,237,232,0.06)':'rgba(26,26,26,0.05)',
-    tickColor:isDark?'rgba(240,237,232,0.4)':'rgba(26,26,26,0.45)',
-    bgColor:isDark?'#181816':'#FFFFFF',
-    locA:isDark?'#FF7A42':'#E8703A',
-    locB:isDark?'#22D4A6':'#1AAF8A',
-    locAAlpha0:isDark?'rgba(255,122,66,0.22)':'rgba(232,112,58,0.15)',
-    locBAlpha0:isDark?'rgba(34,212,166,0.18)':'rgba(26,175,138,0.12)',
+function toggleTheme() {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeLabel').textContent = isDark ? 'Dark' : 'Light';
+  refreshAllCharts();
+}
+function getThemeColors() {
+  return {
+    gridColor:  isDark ? 'rgba(240,237,232,0.06)' : 'rgba(26,26,26,0.05)',
+    tickColor:  isDark ? 'rgba(240,237,232,0.4)'  : 'rgba(26,26,26,0.45)',
+    bgColor:    isDark ? '#181816' : '#FFFFFF',
+    locA:       isDark ? '#FF7A42' : '#E8703A',
+    locB:       isDark ? '#22D4A6' : '#1AAF8A',
+    locAAlpha0: isDark ? 'rgba(255,122,66,0.22)'  : 'rgba(232,112,58,0.15)',
+    locBAlpha0: isDark ? 'rgba(34,212,166,0.18)'  : 'rgba(26,175,138,0.12)',
   };
 }
-function toggleTheme(){
-  isDark=!isDark;
-  document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
-  document.getElementById('themeLabel').textContent=isDark?'Dark':'Light';
+
+// ── LOCATION TOGGLES ──────────────────────────────────────────────────────
+function toggleLoc(loc) {
+  if (loc === 'a') { if (!showB) return; showA = !showA; }
+  else             { if (!showA) return; showB = !showB; }
+  document.getElementById('btnA').className = 'loc-btn ' + (showA ? 'active-a' : 'inactive');
+  document.getElementById('btnB').className = 'loc-btn ' + (showB ? 'active-b' : 'inactive');
   refreshAllCharts();
 }
 
-// ── LOCATION VISIBILITY ───────────────────────────────────────────────────
-let showA=true,showB=true;
-function toggleLoc(loc){
-  if(loc==='a'){if(!showB)return;showA=!showA;}
-  else{if(!showA)return;showB=!showB;}
-  document.getElementById('btnA').className='loc-btn '+(showA?'active-a':'inactive');
-  document.getElementById('btnB').className='loc-btn '+(showB?'active-b':'inactive');
-  refreshAllCharts();
+// ── TAB SWITCHING ─────────────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  // Rebuild charts in newly visible tab so they size correctly
+  setTimeout(refreshAllCharts, 50);
 }
 
 // ── RANGE FILTER ──────────────────────────────────────────────────────────
-let currentRange='all';
-function setRange(range,btn){
-  currentRange=range;
-  document.querySelectorAll('#quarterTabs .q-tab').forEach(b=>b.classList.remove('active'));
+function setRange(range, btn) {
+  currentRange = range;
+  document.querySelectorAll('#quarterTabs .q-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   buildMainChart();
 }
-function getFilteredIndices(){
-  return sortedKeys.map(k=>{
-    const d=map8375[k]||map8586[k];
-    if(currentRange==='all')return true;
-    if(['2023','2024','2025','2026'].includes(currentRange))return String(d.y)===currentRange;
-    return true;
-  });
-}
 
-// ── TOOLTIP DEFAULTS ──────────────────────────────────────────────────────
-function tooltipDefaults(){
-  const c=getThemeColors();
-  return{
-    backgroundColor:isDark?'#2C2C2A':'#1A1A1A',
-    titleColor:isDark?'#F0EDE8':'#FAF7F2',
-    bodyColor:isDark?'#F0EDE8':'#FAF7F2',
-    borderColor:isDark?'rgba(240,237,232,0.15)':'rgba(255,255,255,0.1)',
-    borderWidth:1,padding:12,cornerRadius:4
-  };
-}
-function scaleDefaults(){
-  const c=getThemeColors();
-  return{
-    x:{grid:{color:c.gridColor},ticks:{color:c.tickColor},border:{color:c.gridColor}},
-    y:{grid:{color:c.gridColor},ticks:{color:c.tickColor,callback:v=>fmtK(v)},border:{color:c.gridColor}}
-  };
-}
-
-Chart.defaults.font.family="'DM Mono', monospace";
-Chart.defaults.font.size=10;
-
-let mainChart,seasonChart,netChart,momChart,rollingChart,yoyChart,gapChart,netPctChart,seasonIndexChart,feeStackChart,projChart;
-
-function makeGrad(ctx,color,h=320){const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,color);g.addColorStop(1,'rgba(0,0,0,0)');return g;}
-
-// ── MAIN CHART ────────────────────────────────────────────────────────────
-function buildMainChart(){
-  const ctx=document.getElementById('mainChart').getContext('2d');
-  const c=getThemeColors();
-  const fi=getFilteredIndices();
-  const labs=allLabels.filter((_,i)=>fi[i]);
-  const fullLabs=allFullLabels.filter((_,i)=>fi[i]);
-  const d8375=allRev8375.filter((_,i)=>fi[i]);
-  const d8586=allRev8586.filter((_,i)=>fi[i]);
-  if(mainChart)mainChart.destroy();
-  mainChart=new Chart(ctx,{
-    type:'line',
-    data:{labels:labs,datasets:[
-      {label:'Reynolda Village',data:showA?d8375:d8375.map(()=>null),borderColor:c.locA,backgroundColor:showA?makeGrad(ctx,c.locAAlpha0):'transparent',borderWidth:2,pointRadius:labs.length>24?2.5:4,pointHoverRadius:7,pointBackgroundColor:c.locA,pointBorderColor:c.bgColor,pointBorderWidth:1.5,tension:0.3,fill:true,spanGaps:false},
-      {label:'Stratford Road',data:showB?d8586:d8586.map(()=>null),borderColor:c.locB,backgroundColor:showB?makeGrad(ctx,c.locBAlpha0):'transparent',borderWidth:2,pointRadius:labs.length>24?2.5:4,pointHoverRadius:7,pointBackgroundColor:c.locB,pointBorderColor:c.bgColor,pointBorderWidth:1.5,tension:0.3,fill:true,spanGaps:false},
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{...tooltipDefaults(),callbacks:{title:items=>fullLabs[items[0].dataIndex],label:ctx=>`  ${ctx.dataset.label}: ${ctx.raw==null?'—':fmt(ctx.raw)}`}},
-        zoom:{zoom:{drag:{enabled:true,backgroundColor:'rgba(255,122,66,0.08)',borderColor:'rgba(255,122,66,0.4)',borderWidth:1},mode:'x'},pan:{enabled:true,mode:'x'}}},
-      scales:{x:{grid:{color:c.gridColor},ticks:{color:c.tickColor,maxRotation:0,autoSkip:false,callback:(v,i)=>labs[i]||''},border:{color:c.gridColor}},
-              y:{grid:{color:c.gridColor},ticks:{color:c.tickColor,callback:v=>fmtK(v)},border:{color:c.gridColor},min:0}}}
-  });
-  document.getElementById('mainChart').ondblclick=()=>mainChart&&mainChart.resetZoom();
-}
-
-// ── MOM GROWTH ────────────────────────────────────────────────────────────
-function buildMomChart(){
-  const c=getThemeColors();
-  if(momChart)momChart.destroy();
-  function momPct(data){
-    return data.map((d,i)=>{
-      if(i===0||data[i-1]==null||d==null)return null;
-      return +((d-data[i-1])/data[i-1]*100).toFixed(1);
-    });
-  }
-  const labs=allFullLabels.map(l=>l.slice(0,3)+' '+l.slice(-2));
-  momChart=new Chart(document.getElementById('momChart'),{
-    type:'bar',
-    data:{labels:labs,datasets:[
-      {label:'Reynolda MoM %',data:showA?momPct(allRev8375):null,backgroundColor:allRev8375.map((_,i)=>{const v=momPct(allRev8375)[i];return v==null?'transparent':v>=0?c.locA+'99':c.locA+'44';}),borderRadius:2,barPercentage:0.6},
-      {label:'Stratford MoM %',data:showB?momPct(allRev8586):null,backgroundColor:allRev8586.map((_,i)=>{const v=momPct(allRev8586)[i];return v==null?'transparent':v>=0?c.locB+'99':c.locB+'44';}),borderRadius:2,barPercentage:0.6},
-    ]},
-    options:{responsive:true,plugins:{legend:{display:false},tooltip:{...tooltipDefaults(),callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw==null?'—':ctx.raw+'%'}`}}},
-      scales:{x:{grid:{display:false},ticks:{color:c.tickColor,maxTicksLimit:12},border:{color:c.gridColor}},
-              y:{grid:{color:c.gridColor},ticks:{color:c.tickColor,callback:v=>v+'%'},border:{color:c.gridColor}}}}
-  });
-}
-
-// ── ROLLING AVG ───────────────────────────────────────────────────────────
-function buildRollingChart(){
-  const c=getThemeColors();
-  if(rollingChart)rollingChart.destroy();
-  function rolling3(data){
-    return data.map((d,i)=>{
-      if(i<2)return null;
-      const slice=[data[i-2],data[i-1],data[i]];
-      if(slice.some(v=>v==null))return null;
-      return +(slice.reduce((s,v)=>s+v,0)/3).toFixed(0);
-    });
-  }
-  const labs=allFullLabels.map(l=>l.slice(0,3)+' '+l.slice(-2));
-  rollingChart=new Chart(document.getElementById('rollingChart'),{
-    type:'line',
-    data:{labels:labs,datasets:[
-      {label:'Reynolda 3mo Avg',data:showA?rolling3(allRev8375):null,borderColor:c.locA,backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0.4,spanGaps:false},
-      {label:'Stratford 3mo Avg',data:showB?rolling3(allRev8586):null,borderColor:c.locB,backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0.4,spanGaps:false},
-    ]},
-    options:{responsive:true,plugins:{legend:{display:false},tooltip:{...tooltipDefaults(),callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw==null?'—':fmt(ctx.raw)}`}}},
-      scales:{x:{grid:{display:false},ticks:{color:c.tickColor,maxTicksLimit:12},border:{color:c.gridColor}},
-              y:{grid:{color:c.gridColor},ticks:{color:c.tickColor,callback:v=>fmtK(v)},border:{color:c.gridColor}}}}
-  });
-}
-
-// ── YEAR-OVER-YEAR ────────────────────────────────────────────────────────
-let yoyLoc='both';
-function setYoyLoc(loc,btn){
-  yoyLoc=loc;
-  btn.closest('.chart-controls').querySelectorAll('.q-tab').forEach(b=>b.classList.remove('active'));
+// ── YOY LOC ───────────────────────────────────────────────────────────────
+function setYoyLoc(loc, btn) {
+  yoyLoc = loc;
+  btn.closest('.chart-controls').querySelectorAll('.q-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   buildYoyChart();
 }
-function buildYoyChart(){
-  const c=getThemeColors();
-  if(yoyChart)yoyChart.destroy();
-  const yrs=[2023,2024,2025,2026];
-  const colors=['#6B7FD7','#FF7A42','#22D4A6','#F5C842'];
-  const datasets=[];
-  yrs.forEach((y,yi)=>{
-    const mnLabels=months;
-    if(yoyLoc==='both'||yoyLoc==='a'){
-      const data=months.map((_,i)=>{const mn=i+1;const d=t8375.find(r=>r.y===y&&r.mn===mn);return d?d.rev:null;});
-      if(data.some(v=>v!=null))datasets.push({label:`Reynolda ${y}`,data,borderColor:colors[yi],backgroundColor:'transparent',borderWidth:1.5,pointRadius:2.5,pointHoverRadius:5,tension:0.3,spanGaps:false,borderDash:yoyLoc==='both'?[4,3]:[]});
-    }
-    if(yoyLoc==='both'||yoyLoc==='b'){
-      const data=months.map((_,i)=>{const mn=i+1;const d=t8586.find(r=>r.y===y&&r.mn===mn);return d?d.rev:null;});
-      if(data.some(v=>v!=null))datasets.push({label:`Stratford ${y}`,data,borderColor:colors[yi],backgroundColor:'transparent',borderWidth:1.5,pointRadius:2.5,pointHoverRadius:5,tension:0.3,spanGaps:false,borderDash:yoyLoc==='both'?[]:[4,3]});
-    }
-  });
-  yoyChart=new Chart(document.getElementById('yoyChart'),{
-    type:'line',
-    data:{labels:months,datasets},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:true,position:'top',labels:{color:c.tickColor,boxWidth:12,font:{size:10}}},tooltip:{...tooltipDefaults(),callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw==null?'—':fmt(ctx.raw)}`}}},
-      scales:{x:{grid:{color:c.gridColor},ticks:{color:c.tickColor},border:{color:c.gridColor}},
-              y:{grid:{color:c.gridColor},ticks:{color:c.tickColor,callback:v=>fmtK(v)},border:{color:c.gridColor}}}}
-  });
+
+// ── TOOLTIP / SCALE HELPERS ───────────────────────────────────────────────
+function ttDefaults() {
+  return {
+    backgroundColor: isDark ? '#2C2C2A' : '#1A1A1A',
+    titleColor: isDark ? '#F0EDE8' : '#FAF7F2',
+    bodyColor:  isDark ? '#F0EDE8' : '#FAF7F2',
+    borderColor: isDark ? 'rgba(240,237,232,0.15)' : 'rgba(255,255,255,0.1)',
+    borderWidth: 1, padding: 12, cornerRadius: 4
+  };
+}
+function xScale(ticks) {
+  const c = getThemeColors();
+  return { grid:{color:c.gridColor}, ticks:{color:c.tickColor,...ticks}, border:{color:c.gridColor} };
+}
+function yScale(cb) {
+  const c = getThemeColors();
+  return { grid:{color:c.gridColor}, ticks:{color:c.tickColor,callback:cb||((v)=>fmtK(v))}, border:{color:c.gridColor} };
 }
 
-// ── GAP CHART ─────────────────────────────────────────────────────────────
-function buildGapChart(){
-  const c=getThemeColors();
-  if(gapChart)gapChart.destroy();
-  const labs=allFullLabels.map(l=>l.slice(0,3)+' '+l.slice(-2));
-  const gaps=sortedKeys.map(k=>{
-    const a=map8375[k]?.rev,b=map8586[k]?.rev;
-    return(a!=null&&b!=null)?+(b-a).toFixed(0):null;
-  });
-  gapChart=new Chart(document.getElementById('gapChart'),{
-    type:'bar',
-    data:{labels:labs,datasets:[{
-      label:'Gap (Stratford − Reynolda)',
-      data:gaps,
-      backgroundColor:gaps.map(v=>v==null?'transparent':v>=0?c.locB+'AA':c.locA+'AA'),
-      borderRadius:2,barPercentage:0.7
-    }]},
-    options:{responsive:true,plugins:{legend:{display:false},tooltip:{...tooltipDefaults(),callbacks:{label:ctx=>`Gap: ${ctx.raw==null?'—':fmt(ctx.raw)}`}}},
-      scales:{x:{grid:{display:false},ticks:{color:c.tickColor,maxTicksLimit:12},border:{color:c.gridColor}},
-              y:{grid:{color:c.gridColor},ticks:{color:c.tickColor,callback:v=>fmtK(v)},border:{color:c.gridColor}}}}
-  });
+Chart.defaults.font.family = "'DM Mono', monospace";
+Chart.defaults.font.size = 10;
+
+function makeGrad(ctx, color, h=320) {
+  const g = ctx.createLinearGradient(0,0,0,h);
+  g.addColorStop(0, color); g.addColorStop(1, 'rgba(0,0,0,0)');
+  return g;
 }
 
-// ── NET ACH % ─────────────────────────────────────────────────────────────
-function buildNetPctChart(){
-  const c=getThemeColors();
-  if(netPctChart)netPctChart.destroy();
-  const withNet=sortedKeys.filter(k=>(map8375[k]?.net||map8586[k]?.net));
-  const labs=withNet.map(k=>{const d=map8375[k]||map8586[k];return d.m.slice(0,3)+' '+String(d.y).slice(2);});
-  const pctA=withNet.map(k=>{const d=map8375[k];return d&&d.net&&d.rev?+(d.net/d.rev*100).toFixed(1):null;});
-  const pctB=withNet.map(k=>{const d=map8586[k];return d&&d.net&&d.rev?+(d.net/d.rev*100).toFixed(1):null;});
-  netPctChart=new Chart(document.getElementById('netPctChart'),{
-    type:'line',
-    data:{labels:labs,datasets:[
-      {label:'Reynolda Net %',data:showA?pctA:null,borderColor:c.locA,backgroundColor:'transparent',borderWidth:1.5,pointRadius:2,tension:0.3,spanGaps:false},
-      {label:'Stratford Net %',data:showB?pctB:null,borderColor:c.locB,backgroundColor:'transparent',borderWidth:1.5,pointRadius:2,tension:0.3,spanGaps:false},
-    ]},
-    options:{responsive:true,plugins:{legend:{display:false},tooltip:{...tooltipDefaults(),callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw==null?'—':ctx.raw+'%'}`}}},
-      scales:{x:{grid:{display:false},ticks:{color:c.tickColor,maxTicksLimit:10},border:{color:c.gridColor}},
-              y:{grid:{color:c.gridColor},ticks:{color:c.tickColor,callback:v=>v+'%'},border:{color:c.gridColor},min:70,max:100}}}
-  });
-}
+// ── INIT DASHBOARD ────────────────────────────────────────────────────────
+function initDashboard() {
+  document.getElementById('dashboard').style.display = 'block';
 
-// ── SEASONAL ─────────────────────────────────────────────────────────────
-function avgByMonth(data){
-  return months.map((_,i)=>{const mn=i+1,rows=data.filter(d=>d.mn===mn);return rows.length?+(rows.reduce((s,d)=>s+d.rev,0)/rows.length).toFixed(0):null;});
-}
-function buildSeasonChart(){
-  const c=getThemeColors();
-  if(seasonChart)seasonChart.destroy();
-  seasonChart=new Chart(document.getElementById('seasonChart'),{
-    type:'bar',
-    data:{labels:months,datasets:[
-      {label:'Reynolda',data:showA?avgByMonth(t8375):null,backgroundColor:c.locAAlpha0,borderColor:c.locA,borderWidth:1.5,borderRadius:2,borderSkipped:false},
-      {label:'Stratford',data:showB?avgByMonth(t8586):null,backgroundColor:c.locBAlpha0,borderColor:c.locB,borderWidth:1.5,borderRadius:2,borderSkipped:false},
-    ]},
-    options:{responsive:true,plugins:{legend:{display:false},tooltip:{...tooltipDefaults(),callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.raw)}`}}},
-      scales:{x:{grid:{display:false},ticks:{color:c.tickColor},border:{color:c.gridColor}},
-              y:{grid:{color:c.gridColor},ticks:{color:c.tickColor,callback:v=>fmtK(v)},border:{color:c.gridColor}}}}
-  });
-}
+  // DATA
+  const raw8375 = [
+    {y:2022,m:'Dec',mn:12,rev:16350.28,cf:566.91,of:1725.85,net:14452.17},
+    {y:2023,m:'Jan',mn:1,rev:31082.91,cf:1086.78,of:3271.20,net:26969.08},
+    {y:2023,m:'Feb',mn:2,rev:34296.81,cf:1207.39,of:3560.52,net:29744.14},
+    {y:2023,m:'Mar',mn:3,rev:34619.23,cf:1231.64,of:3589.53,net:29877.26},
+    {y:2023,m:'Apr',mn:4,rev:34770.43,cf:1248.21,of:3603.12,net:30405.88},
+    {y:2023,m:'May',mn:5,rev:27921.96,cf:994.09,of:2992.62,net:24339.32},
+    {y:2023,m:'Jun',mn:6,rev:25550.81,cf:899.17,of:2773.36,net:22164.70},
+    {y:2023,m:'Jul',mn:7,rev:24939.76,cf:891.86,of:2749.17,net:21640.13},
+    {y:2023,m:'Aug',mn:8,rev:30345.13,cf:1052.64,of:3229.27,net:26336.61},
+    {y:2023,m:'Sep',mn:9,rev:34948.87,cf:1222.71,of:3683.36,net:30582.84},
+    {y:2023,m:'Oct',mn:10,rev:37933.98,cf:1323.42,of:3912.30,net:33154.64},
+    {y:2023,m:'Nov',mn:11,rev:41251.16,cf:1441.87,of:4210.82,net:36075.80},
+    {y:2023,m:'Dec',mn:12,rev:30875.35,cf:1099.14,of:3285.39,net:26961.14},
+    {y:2024,m:'Jan',mn:1,rev:35003.91,cf:1237.17,of:3648.56,net:30626.61},
+    {y:2024,m:'Feb',mn:2,rev:35270.33,cf:1259.76,of:3672.55,net:30746.76},
+    {y:2024,m:'Mar',mn:3,rev:37264.97,cf:1319.87,of:3852.06,net:32571.30},
+    {y:2024,m:'Apr',mn:4,rev:32351.60,cf:1179.32,of:3409.85,net:28176.03},
+    {y:2024,m:'May',mn:5,rev:29166.55,cf:1036.19,of:3121.87,net:null},
+    {y:2024,m:'Jun',mn:6,rev:26402.78,cf:939.13,of:2893.98,net:23106.88},
+    {y:2024,m:'Jul',mn:7,rev:25206.36,cf:886.73,of:2766.78,net:22061.65},
+    {y:2024,m:'Aug',mn:8,rev:28236.76,cf:984.27,of:3037.96,net:null},
+    {y:2024,m:'Sep',mn:9,rev:33476.61,cf:1175.07,of:3501.93,net:29243.86},
+    {y:2024,m:'Oct',mn:10,rev:36430.61,cf:1275.25,of:3774.34,net:null},
+    {y:2024,m:'Nov',mn:11,rev:36240.43,cf:1279.45,of:3759.86,net:31994.90},
+    {y:2024,m:'Dec',mn:12,rev:36673.92,cf:1276.01,of:3797.30,net:null},
+    {y:2025,m:'Jan',mn:1,rev:32352.86,cf:1125.53,of:3409.99,net:28416.55},
+    {y:2025,m:'Feb',mn:2,rev:33939.49,cf:1188.44,of:3548.78,net:null},
+    {y:2025,m:'Mar',mn:3,rev:34551.52,cf:1206.07,of:3607.83,net:30285.55},
+    {y:2025,m:'Apr',mn:4,rev:33121.28,cf:1154.61,of:3478.36,net:null},
+    {y:2025,m:'May',mn:5,rev:30674.47,cf:1066.03,of:3258.95,net:27125.07},
+    {y:2025,m:'Jun',mn:6,rev:30674.47,cf:1066.03,of:3258.95,net:27125.07},
+    {y:2025,m:'Jul',mn:7,rev:30433.25,cf:1058.86,of:3237.20,net:26608.12},
+    {y:2025,m:'Aug',mn:8,rev:32624.86,cf:1142.27,of:3433.48,net:null},
+    {y:2025,m:'Sep',mn:9,rev:36759.89,cf:1281.53,of:3806.64,net:32251.91},
+    {y:2025,m:'Oct',mn:10,rev:38687.74,cf:1351.05,of:3980.09,net:33728.29},
+    {y:2025,m:'Nov',mn:11,rev:38357.33,cf:1335.05,of:3950.38,net:33679.22},
+    {y:2025,m:'Dec',mn:12,rev:33744.54,cf:1192.59,of:3532.04,net:null},
+    {y:2026,m:'Jan',mn:1,rev:33901.49,cf:1189.82,of:3549.34,net:null},
+    {y:2026,m:'Feb',mn:2,rev:36032.23,cf:1255.78,of:3741.09,net:null},
+    {y:2026,m:'Mar',mn:3,rev:37375.83,cf:1362.03,of:3862.07,net:32454.69},
+    {y:2026,m:'Apr',mn:4,rev:34026.57,cf:1245.29,of:3560.59,net:29521.72},
+    {y:2026,m:'May',mn:5,rev:29733.01,cf:1116.01,of:3174.21,net:25592.36},
+  ];
+  const raw8586 = [
+    {y:2022,m:'Dec',mn:12,rev:17727.20,cf:644.55,of:1884.52,net:16016.77},
+    {y:2023,m:'Jan',mn:1,rev:36601.79,cf:1275.24,of:3767.96,net:32126.77},
+    {y:2023,m:'Feb',mn:2,rev:35519.73,cf:1236.89,of:3670.58,net:30819.37},
+    {y:2023,m:'Mar',mn:3,rev:33684.41,cf:1189.56,of:3505.37,net:29270.45},
+    {y:2023,m:'Apr',mn:4,rev:32912.62,cf:1154.42,of:3435.92,net:28778.14},
+    {y:2023,m:'May',mn:5,rev:36137.96,cf:1248.89,of:3726.21,net:31638.86},
+    {y:2023,m:'Jun',mn:6,rev:32891.72,cf:1149.97,of:3442.82,net:28704.48},
+    {y:2023,m:'Jul',mn:7,rev:33958.57,cf:1169.91,of:3554.45,net:29630.36},
+    {y:2023,m:'Aug',mn:8,rev:33932.44,cf:1182.97,of:3568.07,net:29445.97},
+    {y:2023,m:'Sep',mn:9,rev:34878.04,cf:1225.32,of:3637.22,net:30501.67},
+    {y:2023,m:'Oct',mn:10,rev:39368.28,cf:1367.90,of:4041.37,net:34235.36},
+    {y:2023,m:'Nov',mn:11,rev:41207.63,cf:1436.77,of:4206.90,net:36149.88},
+    {y:2023,m:'Dec',mn:12,rev:37577.51,cf:1331.19,of:3892.69,net:32790.56},
+    {y:2024,m:'Jan',mn:1,rev:38572.27,cf:1349.65,of:3989.05,net:33826.75},
+    {y:2024,m:'Feb',mn:2,rev:39034.28,cf:1361.66,of:4010.40,net:33898.30},
+    {y:2024,m:'Mar',mn:3,rev:38088.64,cf:1353.35,of:3926.19,net:33296.51},
+    {y:2024,m:'Apr',mn:4,rev:35918.93,cf:1290.58,of:3729.59,net:31376.34},
+    {y:2024,m:'May',mn:5,rev:35378.86,cf:1233.63,of:3717.93,net:null},
+    {y:2024,m:'Jun',mn:6,rev:32166.19,cf:1136.33,of:3393.20,net:27908.35},
+    {y:2024,m:'Jul',mn:7,rev:34215.59,cf:1189.29,of:3577.63,net:29986.41},
+    {y:2024,m:'Aug',mn:8,rev:33965.58,cf:1180.41,of:3555.09,net:29881.42},
+    {y:2024,m:'Sep',mn:9,rev:38989.58,cf:1355.16,of:4003.16,net:null},
+    {y:2024,m:'Oct',mn:10,rev:42589.14,cf:1482.34,of:4331.25,net:37415.51},
+    {y:2024,m:'Nov',mn:11,rev:41965.72,cf:1452.81,of:4273.57,net:null},
+    {y:2024,m:'Dec',mn:12,rev:40082.57,cf:1382.71,of:4100.14,net:null},
+    {y:2025,m:'Jan',mn:1,rev:38599.90,cf:1334.30,of:4026.61,net:null},
+    {y:2025,m:'Feb',mn:2,rev:40328.23,cf:1414.87,of:4154.25,net:null},
+    {y:2025,m:'Mar',mn:3,rev:39898.21,cf:1385.00,of:4085.88,net:null},
+    {y:2025,m:'Apr',mn:4,rev:37963.61,cf:1321.82,of:3914.95,net:null},
+    {y:2025,m:'May',mn:5,rev:35842.76,cf:1250.13,of:3723.40,net:null},
+    {y:2025,m:'Jun',mn:6,rev:36991.94,cf:1280.49,of:3825.17,net:null},
+    {y:2025,m:'Jul',mn:7,rev:36290.06,cf:1270.75,of:3793.97,net:null},
+    {y:2025,m:'Aug',mn:8,rev:36995.58,cf:1279.44,of:3827.81,net:32539.07},
+    {y:2025,m:'Sep',mn:9,rev:37225.74,cf:1310.09,of:3848.58,net:32593.89},
+    {y:2025,m:'Oct',mn:10,rev:42589.14,cf:1482.34,of:4331.25,net:37415.51},
+    {y:2025,m:'Nov',mn:11,rev:42191.52,cf:1464.00,of:4295.44,net:null},
+    {y:2025,m:'Dec',mn:12,rev:36007.20,cf:1272.69,of:3732.81,net:null},
+    {y:2026,m:'Jan',mn:1,rev:32246.82,cf:1137.15,of:3400.42,net:null},
+    {y:2026,m:'Feb',mn:2,rev:36728.13,cf:1271.00,of:3803.75,net:null},
+    {y:2026,m:'Mar',mn:3,rev:36814.38,cf:1328.96,of:3811.48,net:null},
+    {y:2026,m:'Apr',mn:4,rev:36808.59,cf:1340.94,of:3810.97,net:32030.10},
+    {y:2026,m:'May',mn:5,rev:36314.29,cf:1329.81,of:3764.86,net:31668.63},
+  ];
 
-// ── SEASONAL INDEX ────────────────────────────────────────────────────────
-function buildSeasonIndexChart(){
-  const c=getThemeColors();
-  if(seasonIndexChart)seasonIndexChart.destroy();
-  function seasonalIndex(data){
-    const avgs=avgByMonth(data);
-    const overall=avgs.filter(v=>v!=null).reduce((s,v)=>s+v,0)/avgs.filter(v=>v!=null).length;
-    return avgs.map(v=>v!=null?+(v/overall*100).toFixed(1):null);
+  const fmt  = v => '$' + Math.round(v).toLocaleString();
+  const fmtK = v => '$' + (v/1000).toFixed(1) + 'k';
+  const MOS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function buildTL(data) {
+    const map={};
+    data.forEach(d=>{const k=d.y*100+d.mn;if(!map[k]||(d.net!=null&&map[k].net==null))map[k]=d;});
+    return Object.values(map).sort((a,b)=>(a.y*100+a.mn)-(b.y*100+b.mn));
   }
-  seasonIndexChart=new Chart(document.getElementById('seasonIndexChart'),{
-    type:'line',
-    data:{labels:months,datasets:[
-      {label:'Reynolda Index',data:showA?seasonalIndex(t8375):null,borderColor:c.locA,backgroundColor:c.locAAlpha0,borderWidth:2,pointRadius:4,pointHoverRadius:6,tension:0.3,fill:true},
-      {label:'Stratford Index',data:showB?seasonalIndex(t8586):null,borderColor:c.locB,backgroundColor:c.locBAlpha0,borderWidth:2,pointRadius:4,pointHoverRadius:6,tension:0.3,fill:true},
-    ]},
-    options:{responsive:true,plugins:{legend:{display:false},tooltip:{...tooltipDefaults(),callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw}`,afterBody:()=>['100 = annual average']}}},
-      scales:{x:{grid:{display:false},ticks:{color:c.tickColor},border:{color:c.gridColor}},
-              y:{grid:{color:c.gridColor},ticks:{color:c.tickColor,callback:v=>v},border:{color:c.gridColor},
-                 annotations:{line100:{type:'line',yMin:100,yMax:100,borderColor:'rgba(255,255,255,0.2)',borderWidth:1}}}}}
+  const t8375=buildTL(raw8375), t8586=buildTL(raw8586);
+  const allKeys=[...new Set([...t8375.map(d=>d.y*100+d.mn),...t8586.map(d=>d.y*100+d.mn)])].sort((a,b)=>a-b);
+  const map8375=Object.fromEntries(t8375.map(d=>[d.y*100+d.mn,d]));
+  const map8586=Object.fromEntries(t8586.map(d=>[d.y*100+d.mn,d]));
+
+  // Dynamic date range in header
+  const firstD = map8375[allKeys[0]] || map8586[allKeys[0]];
+  const lastD  = map8375[allKeys[allKeys.length-1]] || map8586[allKeys[allKeys.length-1]];
+  document.getElementById('dateRange').textContent = `${firstD.m} ${firstD.y} – ${lastD.m} ${lastD.y}`;
+
+  const allLabels=allKeys.map(k=>{const d=map8375[k]||map8586[k];return(d.mn===1||d.mn===4||d.mn===7||d.mn===10)?`Q${Math.ceil(d.mn/3)} ${d.y}`:'';});
+  const allFullLabels=allKeys.map(k=>{const d=map8375[k]||map8586[k];return d.m+' '+d.y;});
+  const allRev8375=allKeys.map(k=>map8375[k]?.rev??null);
+  const allRev8586=allKeys.map(k=>map8586[k]?.rev??null);
+
+  // KPIs
+  const tot8375=t8375.reduce((s,d)=>s+d.rev,0), tot8586=t8586.reduce((s,d)=>s+d.rev,0);
+  const avg8375=tot8375/t8375.length, avg8586=tot8586/t8586.length;
+  const pk8375=Math.max(...t8375.map(d=>d.rev)), pk8586=Math.max(...t8586.map(d=>d.rev));
+  const fees8375=t8375.reduce((s,d)=>s+d.cf+d.of,0), fees8586=t8586.reduce((s,d)=>s+d.cf+d.of,0);
+  const bestComb=allKeys.reduce((b,k)=>{const a=map8375[k]?.rev??0,x=map8586[k]?.rev??0;return(a+x)>b?(a+x):b;},0);
+  document.getElementById('kpi-rev-a').textContent=fmtK(tot8375);
+  document.getElementById('kpi-rev-b').textContent=fmtK(tot8586);
+  document.getElementById('kpi-rev-total').textContent=fmtK(tot8375+tot8586);
+  document.getElementById('kpi-avg-a').textContent=fmtK(avg8375);
+  document.getElementById('kpi-avg-b').textContent=fmtK(avg8586);
+  document.getElementById('kpi-avg-total').textContent=fmtK(avg8375+avg8586);
+  document.getElementById('kpi-peak-a').textContent=fmtK(pk8375);
+  document.getElementById('kpi-peak-b').textContent=fmtK(pk8586);
+  document.getElementById('kpi-peak-total').textContent=fmtK(bestComb);
+  document.getElementById('kpi-fees-a').textContent=fmtK(fees8375);
+  document.getElementById('kpi-fees-b').textContent=fmtK(fees8586);
+  document.getElementById('kpi-fees-total').textContent=fmtK(fees8375+fees8586);
+
+  // FILTERED KEYS
+  function filteredKeys() {
+    return allKeys.filter(k=>{
+      if(currentRange==='all')return true;
+      return String((map8375[k]||map8586[k]).y)===currentRange;
+    });
+  }
+
+  // ── CHART BUILDERS ────────────────────────────────────────────────────
+  function buildMainChart(){
+    const c=getThemeColors();
+    const fk=filteredKeys();
+    const labs=fk.map(k=>allLabels[allKeys.indexOf(k)]);
+    const fullLabs=fk.map(k=>allFullLabels[allKeys.indexOf(k)]);
+    const dA=fk.map(k=>map8375[k]?.rev??null);
+    const dB=fk.map(k=>map8586[k]?.rev??null);
+    const ctx=document.getElementById('mainChart').getContext('2d');
+    if(mainChart)mainChart.destroy();
+    mainChart=new Chart(ctx,{type:'line',data:{labels:labs,datasets:[
+      {label:'Reynolda Village',data:showA?dA:dA.map(()=>null),borderColor:c.locA,backgroundColor:showA?makeGrad(ctx,c.locAAlpha0):'transparent',borderWidth:2,pointRadius:labs.length>24?2:4,pointHoverRadius:6,pointBackgroundColor:c.locA,pointBorderColor:c.bgColor,pointBorderWidth:1.5,tension:0.3,fill:true,spanGaps:false},
+      {label:'Stratford Road',data:showB?dB:dB.map(()=>null),borderColor:c.locB,backgroundColor:showB?makeGrad(ctx,c.locBAlpha0):'transparent',borderWidth:2,pointRadius:labs.length>24?2:4,pointHoverRadius:6,pointBackgroundColor:c.locB,pointBorderColor:c.bgColor,pointBorderWidth:1.5,tension:0.3,fill:true,spanGaps:false},
+    ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{...ttDefaults(),callbacks:{title:i=>fullLabs[i[0].dataIndex],label:c=>`  ${c.dataset.label}: ${c.raw==null?'—':fmt(c.raw)}`}},
+        zoom:{zoom:{drag:{enabled:true,backgroundColor:'rgba(255,122,66,0.08)',borderColor:'rgba(255,122,66,0.4)',borderWidth:1},mode:'x'},pan:{enabled:true,mode:'x'}}},
+      scales:{x:{...xScale({maxRotation:0,autoSkip:false,callback:(v,i)=>labs[i]||''})},y:{...yScale(),min:0}}}});
+    document.getElementById('mainChart').ondblclick=()=>mainChart&&mainChart.resetZoom();
+  }
+
+  function buildMomChart(){
+    const c=getThemeColors();
+    if(momChart)momChart.destroy();
+    function mom(data){return data.map((v,i)=>i===0||data[i-1]==null||v==null?null:+((v-data[i-1])/data[i-1]*100).toFixed(1));}
+    const mA=mom(allRev8375),mB=mom(allRev8586);
+    const labs=allFullLabels.map(l=>l.slice(0,3)+' '+l.slice(-2));
+    momChart=new Chart(document.getElementById('momChart'),{type:'bar',data:{labels:labs,datasets:[
+      {label:'Reynolda MoM%',data:showA?mA:null,backgroundColor:mA.map(v=>v==null?'transparent':v>=0?c.locA+'BB':c.locA+'44'),borderRadius:2,barPercentage:0.6},
+      {label:'Stratford MoM%',data:showB?mB:null,backgroundColor:mB.map(v=>v==null?'transparent':v>=0?c.locB+'BB':c.locB+'44'),borderRadius:2,barPercentage:0.6},
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...ttDefaults(),callbacks:{label:c=>`${c.dataset.label}: ${c.raw==null?'—':c.raw+'%'}`}}},
+      scales:{x:{...xScale({maxTicksLimit:14})},y:{...yScale(v=>v+'%')}}}});
+  }
+
+  function buildRollingChart(){
+    const c=getThemeColors();
+    if(rollingChart)rollingChart.destroy();
+    function roll3(data){return data.map((v,i)=>{if(i<2)return null;const s=[data[i-2],data[i-1],v];return s.some(x=>x==null)?null:+(s.reduce((a,b)=>a+b,0)/3).toFixed(0);});}
+    const labs=allFullLabels.map(l=>l.slice(0,3)+' '+l.slice(-2));
+    rollingChart=new Chart(document.getElementById('rollingChart'),{type:'line',data:{labels:labs,datasets:[
+      {label:'Reynolda 3mo',data:showA?roll3(allRev8375):null,borderColor:c.locA,backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0.4,spanGaps:false},
+      {label:'Stratford 3mo',data:showB?roll3(allRev8586):null,borderColor:c.locB,backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0.4,spanGaps:false},
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...ttDefaults(),callbacks:{label:c=>`${c.dataset.label}: ${c.raw==null?'—':fmt(c.raw)}`}}},
+      scales:{x:{...xScale({maxTicksLimit:14})},y:{...yScale()}}}});
+  }
+
+  function buildGapChart(){
+    const c=getThemeColors();
+    if(gapChart)gapChart.destroy();
+    const labs=allFullLabels.map(l=>l.slice(0,3)+' '+l.slice(-2));
+    const gaps=allKeys.map(k=>{const a=map8375[k]?.rev,b=map8586[k]?.rev;return(a!=null&&b!=null)?+(b-a).toFixed(0):null;});
+    gapChart=new Chart(document.getElementById('gapChart'),{type:'bar',data:{labels:labs,datasets:[{
+      label:'Gap (Stratford − Reynolda)',data:gaps,
+      backgroundColor:gaps.map(v=>v==null?'transparent':v>=0?c.locB+'AA':c.locA+'AA'),borderRadius:2,barPercentage:0.7
+    }]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...ttDefaults(),callbacks:{label:c=>`Gap: ${c.raw==null?'—':fmt(c.raw)}`}}},
+      scales:{x:{...xScale({maxTicksLimit:14})},y:{...yScale()}}}});
+  }
+
+  function buildYoyChart(){
+    const c=getThemeColors();
+    if(yoyChart)yoyChart.destroy();
+    const yrs=[2023,2024,2025,2026];
+    const yrColors=['#6B7FD7','#FF7A42','#22D4A6','#F5C842'];
+    const datasets=[];
+    yrs.forEach((y,yi)=>{
+      if(yoyLoc==='both'||yoyLoc==='a'){
+        const d=MOS.map((_,i)=>{const r=t8375.find(x=>x.y===y&&x.mn===i+1);return r?r.rev:null;});
+        if(d.some(v=>v!=null))datasets.push({label:`Reynolda ${y}`,data:d,borderColor:yrColors[yi],backgroundColor:'transparent',borderWidth:1.5,pointRadius:3,pointHoverRadius:5,tension:0.3,spanGaps:false,borderDash:yoyLoc==='both'?[4,3]:[]});
+      }
+      if(yoyLoc==='both'||yoyLoc==='b'){
+        const d=MOS.map((_,i)=>{const r=t8586.find(x=>x.y===y&&x.mn===i+1);return r?r.rev:null;});
+        if(d.some(v=>v!=null))datasets.push({label:`Stratford ${y}`,data:d,borderColor:yrColors[yi],backgroundColor:'transparent',borderWidth:1.5,pointRadius:3,pointHoverRadius:5,tension:0.3,spanGaps:false,borderDash:yoyLoc==='both'?[]:[4,3]});
+      }
+    });
+    yoyChart=new Chart(document.getElementById('yoyChart'),{type:'line',data:{labels:MOS,datasets},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{display:true,position:'top',labels:{color:c.tickColor,boxWidth:12,font:{size:10}}},tooltip:{...ttDefaults(),callbacks:{label:c=>`${c.dataset.label}: ${c.raw==null?'—':fmt(c.raw)}`}}},
+        scales:{x:{...xScale({})},y:{...yScale()}}}});
+  }
+
+  function buildSeasonChart(){
+    const c=getThemeColors();
+    if(seasonChart)seasonChart.destroy();
+    function avgMo(data){return MOS.map((_,i)=>{const rows=data.filter(d=>d.mn===i+1);return rows.length?+(rows.reduce((s,d)=>s+d.rev,0)/rows.length).toFixed(0):null;});}
+    seasonChart=new Chart(document.getElementById('seasonChart'),{type:'bar',data:{labels:MOS,datasets:[
+      {label:'Reynolda',data:showA?avgMo(t8375):null,backgroundColor:c.locAAlpha0,borderColor:c.locA,borderWidth:1.5,borderRadius:2,borderSkipped:false},
+      {label:'Stratford',data:showB?avgMo(t8586):null,backgroundColor:c.locBAlpha0,borderColor:c.locB,borderWidth:1.5,borderRadius:2,borderSkipped:false},
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...ttDefaults(),callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}}},
+      scales:{x:{...xScale({})},y:{...yScale()}}}});
+  }
+
+  function buildSeasonIndexChart(){
+    const c=getThemeColors();
+    if(seasonIndexChart)seasonIndexChart.destroy();
+    function idx(data){
+      const avgs=MOS.map((_,i)=>{const r=data.filter(d=>d.mn===i+1);return r.length?r.reduce((s,d)=>s+d.rev,0)/r.length:null;});
+      const overall=avgs.filter(v=>v!=null).reduce((s,v)=>s+v,0)/avgs.filter(v=>v!=null).length;
+      return avgs.map(v=>v!=null?+(v/overall*100).toFixed(1):null);
+    }
+    seasonIndexChart=new Chart(document.getElementById('seasonIndexChart'),{type:'line',data:{labels:MOS,datasets:[
+      {label:'Reynolda',data:showA?idx(t8375):null,borderColor:c.locA,backgroundColor:c.locAAlpha0,borderWidth:2,pointRadius:4,pointHoverRadius:6,tension:0.3,fill:true},
+      {label:'Stratford',data:showB?idx(t8586):null,borderColor:c.locB,backgroundColor:c.locBAlpha0,borderWidth:2,pointRadius:4,pointHoverRadius:6,tension:0.3,fill:true},
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...ttDefaults(),callbacks:{label:c=>`${c.dataset.label}: ${c.raw} (100=avg)`}}},
+      scales:{x:{...xScale({})},y:{...yScale(v=>v)}}}});
+  }
+
+  function buildFeeStackChart(){
+    const c=getThemeColors();
+    if(feeStackChart)feeStackChart.destroy();
+    const yrs=[2023,2024,2025,2026];
+    const labs=[...yrs.map(y=>'Rey '+y),...yrs.map(y=>'Str '+y)];
+    const cfD=[...yrs.map(y=>t8375.filter(d=>d.y===y).reduce((s,d)=>s+d.cf,0)),...yrs.map(y=>t8586.filter(d=>d.y===y).reduce((s,d)=>s+d.cf,0))];
+    const ofD=[...yrs.map(y=>t8375.filter(d=>d.y===y).reduce((s,d)=>s+d.of,0)),...yrs.map(y=>t8586.filter(d=>d.y===y).reduce((s,d)=>s+d.of,0))];
+    feeStackChart=new Chart(document.getElementById('feeStackChart'),{type:'bar',data:{labels:labs,datasets:[
+      {label:'ClubReady',data:cfD,backgroundColor:c.locA+'BB',stack:'fees',borderRadius:0},
+      {label:'Other Fees',data:ofD,backgroundColor:c.locB+'BB',stack:'fees',borderRadius:2},
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'top',labels:{color:c.tickColor,boxWidth:12,font:{size:10}}},tooltip:{...ttDefaults(),callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}}},
+      scales:{x:{...xScale({}),stacked:true},y:{...yScale(),stacked:true}}}});
+  }
+
+  function buildNetChart(){
+    const c=getThemeColors();
+    if(netChart)netChart.destroy();
+    const wn=allKeys.filter(k=>map8375[k]?.net||map8586[k]?.net);
+    const labs=wn.map(k=>{const d=map8375[k]||map8586[k];return d.m.slice(0,3)+' '+String(d.y).slice(2);});
+    netChart=new Chart(document.getElementById('netChart'),{type:'line',data:{labels:labs,datasets:[
+      {label:'Reynolda Net ACH',data:showA?wn.map(k=>map8375[k]?.net||null):null,borderColor:c.locA,backgroundColor:'transparent',borderWidth:1.5,pointRadius:2.5,tension:0.3,spanGaps:false},
+      {label:'Stratford Net ACH',data:showB?wn.map(k=>map8586[k]?.net||null):null,borderColor:c.locB,backgroundColor:'transparent',borderWidth:1.5,pointRadius:2.5,tension:0.3,spanGaps:false},
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...ttDefaults(),callbacks:{label:c=>`${c.dataset.label}: ${c.raw==null?'—':fmt(c.raw)}`}}},
+      scales:{x:{...xScale({maxTicksLimit:12})},y:{...yScale()}}}});
+  }
+
+  function buildNetPctChart(){
+    const c=getThemeColors();
+    if(netPctChart)netPctChart.destroy();
+    const wn=allKeys.filter(k=>map8375[k]?.net||map8586[k]?.net);
+    const labs=wn.map(k=>{const d=map8375[k]||map8586[k];return d.m.slice(0,3)+' '+String(d.y).slice(2);});
+    const pA=wn.map(k=>{const d=map8375[k];return d&&d.net&&d.rev?+(d.net/d.rev*100).toFixed(1):null;});
+    const pB=wn.map(k=>{const d=map8586[k];return d&&d.net&&d.rev?+(d.net/d.rev*100).toFixed(1):null;});
+    netPctChart=new Chart(document.getElementById('netPctChart'),{type:'line',data:{labels:labs,datasets:[
+      {label:'Reynolda Net%',data:showA?pA:null,borderColor:c.locA,backgroundColor:'transparent',borderWidth:1.5,pointRadius:2,tension:0.3,spanGaps:false},
+      {label:'Stratford Net%',data:showB?pB:null,borderColor:c.locB,backgroundColor:'transparent',borderWidth:1.5,pointRadius:2,tension:0.3,spanGaps:false},
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...ttDefaults(),callbacks:{label:c=>`${c.dataset.label}: ${c.raw==null?'—':c.raw+'%'}`}}},
+      scales:{x:{...xScale({maxTicksLimit:12})},y:{...yScale(v=>v+'%'),min:70,max:100}}}});
+  }
+
+  function buildProjChart(){
+    const c=getThemeColors();
+    if(projChart)projChart.destroy();
+    function linReg(ys){
+      const v=ys.map((y,x)=>({x,y})).filter(p=>p.y!=null);
+      const n=v.length,sx=v.reduce((s,p)=>s+p.x,0),sy=v.reduce((s,p)=>s+p.y,0);
+      const sxy=v.reduce((s,p)=>s+p.x*p.y,0),sx2=v.reduce((s,p)=>s+p.x*p.x,0);
+      const m=(n*sxy-sx*sy)/(n*sx2-sx*sx),b=(sy-m*sx)/n;
+      return x=>Math.max(0,m*x+b);
+    }
+    const tk=allKeys.filter(k=>{const d=map8375[k]||map8586[k];return d.y>=2025;});
+    const tA=tk.map(k=>map8375[k]?.rev??null),tB=tk.map(k=>map8586[k]?.rev??null);
+    const regA=linReg(tA),regB=linReg(tB);
+    const lastMn=(()=>{const h=allKeys.filter(k=>(map8375[k]||map8586[k]).y===2026);return h.length?(map8375[h[h.length-1]]||map8586[h[h.length-1]]).mn:0;})();
+    const projMos=MOS.slice(lastMn).map((m,i)=>({m,mn:lastMn+i+1}));
+    const n=tk.length;
+    const labs=[...tk.map(k=>{const d=map8375[k]||map8586[k];return d.m.slice(0,3)+' '+String(d.y).slice(2);}),...projMos.map(p=>p.m.slice(0,3)+' 26')];
+    const aA=[...tA,...projMos.map(()=>null)],aB=[...tB,...projMos.map(()=>null)];
+    const eA=[...tA.map(()=>null),...projMos.map((_,i)=>+regA(n+i).toFixed(0))];
+    const eB=[...tB.map(()=>null),...projMos.map((_,i)=>+regB(n+i).toFixed(0))];
+    if(tA[tA.length-1]!=null)eA[tA.length-1]=tA[tA.length-1];
+    if(tB[tB.length-1]!=null)eB[tB.length-1]=tB[tB.length-1];
+    projChart=new Chart(document.getElementById('projChart'),{type:'line',data:{labels:labs,datasets:[
+      {label:'Reynolda Actual',data:aA,borderColor:c.locA,backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,spanGaps:false},
+      {label:'Stratford Actual',data:aB,borderColor:c.locB,backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,spanGaps:false},
+      {label:'Reynolda Est.',data:eA,borderColor:c.locA,backgroundColor:'transparent',borderWidth:2,borderDash:[5,4],pointRadius:3,tension:0.3,spanGaps:false},
+      {label:'Stratford Est.',data:eB,borderColor:c.locB,backgroundColor:'transparent',borderWidth:2,borderDash:[5,4],pointRadius:3,tension:0.3,spanGaps:false},
+    ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:true,position:'top',labels:{color:c.tickColor,boxWidth:12,font:{size:10}}},tooltip:{...ttDefaults(),callbacks:{label:c=>`${c.dataset.label}: ${c.raw==null?'—':fmt(c.raw)}`}}},
+      scales:{x:{...xScale({maxRotation:0})},y:{...yScale(),min:0}}}});
+    // Proj KPIs
+    const have26=allKeys.filter(k=>(map8375[k]||map8586[k]).y===2026);
+    const hA=have26.reduce((s,k)=>s+(map8375[k]?.rev||0),0);
+    const hB=have26.reduce((s,k)=>s+(map8586[k]?.rev||0),0);
+    const pA=projMos.reduce((s,_,i)=>s+regA(n+i),0);
+    const pB=projMos.reduce((s,_,i)=>s+regB(n+i),0);
+    document.getElementById('projKpis').innerHTML=`
+      <div class="year-card"><div class="year-label">Reynolda 2026 Est.</div><div class="year-rev" style="color:var(--loc-a)">${fmtK(hA+pA)}</div></div>
+      <div class="year-card"><div class="year-label">Stratford 2026 Est.</div><div class="year-rev" style="color:var(--loc-b)">${fmtK(hB+pB)}</div></div>
+      <div class="year-card"><div class="year-label">Combined 2026 Est.</div><div class="year-rev" style="color:var(--text)">${fmtK(hA+pA+hB+pB)}</div></div>`;
+  }
+
+  // ANNUAL YEAR CARDS
+  const years=[2023,2024,2025,2026];
+  const grid=document.getElementById('yearGrid');
+  years.forEach(y=>{
+    const a=t8375.filter(d=>d.y===y).reduce((s,d)=>s+d.rev,0);
+    const b=t8586.filter(d=>d.y===y).reduce((s,d)=>s+d.rev,0);
+    const mx=Math.max(a,b);
+    grid.innerHTML+=`<div class="year-card">
+      <div class="year-label">${y}</div>
+      <div class="year-rev-row"><span class="year-rev" style="color:var(--loc-a)">${fmtK(a)}</span><span class="year-loc-label">Reynolda</span></div>
+      <div class="year-bar-track"><div class="year-bar-fill loc-a" data-w="${(a/mx*100).toFixed(1)}"></div></div>
+      <div class="year-rev-row" style="margin-top:12px"><span class="year-rev" style="color:var(--loc-b)">${fmtK(b)}</span><span class="year-loc-label">Stratford</span></div>
+      <div class="year-bar-track"><div class="year-bar-fill loc-b" data-w="${(b/mx*100).toFixed(1)}"></div></div>
+      <div style="height:1px;background:var(--border);margin:12px 0 10px"></div>
+      <div class="year-rev-row"><span class="year-rev" style="font-size:1.05rem;color:var(--text)">${fmtK(a+b)}</span><span class="year-loc-label">Combined</span></div>
+    </div>`;
   });
-}
+  new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.querySelectorAll('.year-bar-fill').forEach(b=>{b.style.width=b.dataset.w+'%';});});},{threshold:0.2})
+    .observe(document.getElementById('yearGrid'));
 
-// ── FEE STACK ─────────────────────────────────────────────────────────────
-function buildFeeStackChart(){
-  const c=getThemeColors();
-  if(feeStackChart)feeStackChart.destroy();
-  const yrs=[2023,2024,2025,2026];
-  const labsA=yrs.map(y=>'Rey '+y),labsB=yrs.map(y=>'Str '+y);
-  const allLabs=[...labsA,...labsB];
-  const cfData=[...yrs.map(y=>t8375.filter(d=>d.y===y).reduce((s,d)=>s+d.cf,0)),...yrs.map(y=>t8586.filter(d=>d.y===y).reduce((s,d)=>s+d.cf,0))];
-  const ofData=[...yrs.map(y=>t8375.filter(d=>d.y===y).reduce((s,d)=>s+d.of,0)),...yrs.map(y=>t8586.filter(d=>d.y===y).reduce((s,d)=>s+d.of,0))];
-  feeStackChart=new Chart(document.getElementById('feeStackChart'),{
-    type:'bar',
-    data:{labels:allLabs,datasets:[
-      {label:'ClubReady Fees',data:cfData,backgroundColor:c.locA+'BB',borderRadius:0,stack:'fees'},
-      {label:'Other Fees',data:ofData,backgroundColor:c.locB+'BB',borderRadius:2,stack:'fees'},
-    ]},
-    options:{responsive:true,plugins:{legend:{display:true,position:'top',labels:{color:c.tickColor,boxWidth:12,font:{size:10}}},tooltip:{...tooltipDefaults(),callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.raw)}`}}},
-      scales:{x:{grid:{display:false},ticks:{color:c.tickColor},border:{color:c.gridColor},stacked:true},
-              y:{grid:{color:c.gridColor},ticks:{color:c.tickColor,callback:v=>fmtK(v)},border:{color:c.gridColor},stacked:true}}}
+  // FEE TABLE
+  const fb=document.getElementById('feeTableBody');
+  [2022,2023,2024,2025,2026].forEach(y=>{
+    const a=t8375.filter(d=>d.y===y),b=t8586.filter(d=>d.y===y);
+    if(!a.length&&!b.length)return;
+    const acf=a.reduce((s,d)=>s+d.cf,0),aof=a.reduce((s,d)=>s+d.of,0),at=acf+aof;
+    const bcf=b.reduce((s,d)=>s+d.cf,0),bof=b.reduce((s,d)=>s+d.of,0),bt=bcf+bof;
+    const diff=bt-at;
+    fb.innerHTML+=`<tr><td style="font-family:'Syne',sans-serif;font-weight:700">${y}</td>
+      <td class="loc-a-val">${fmt(acf)}</td><td class="loc-a-val">${fmt(aof)}</td><td class="loc-a-val" style="font-weight:600">${fmt(at)}</td>
+      <td class="loc-b-val">${fmt(bcf)}</td><td class="loc-b-val">${fmt(bof)}</td><td class="loc-b-val" style="font-weight:600">${fmt(bt)}</td>
+      <td>${diff>0?`<span class="vs-badge vs-up">+${fmtK(diff)}</span>`:`<span class="vs-badge vs-down">${fmtK(diff)}</span>`}</td></tr>`;
   });
+
+  // INSIGHTS
+  const peakA=t8375.reduce((b,d)=>d.rev>b.rev?d:b);
+  const peakB=t8586.reduce((b,d)=>d.rev>b.rev?d:b);
+  const sumAvg=t8375.filter(d=>[5,6,7].includes(d.mn)).reduce((s,d)=>s+d.rev,0)/t8375.filter(d=>[5,6,7].includes(d.mn)).length;
+  const sumDip=((avg8375-sumAvg)/avg8375*100).toFixed(0);
+  const yr23a=t8375.filter(d=>d.y===2023).reduce((s,d)=>s+d.rev,0);
+  const yr25a=t8375.filter(d=>d.y===2025).reduce((s,d)=>s+d.rev,0);
+  const yr23b=t8586.filter(d=>d.y===2023).reduce((s,d)=>s+d.rev,0);
+  const yr25b=t8586.filter(d=>d.y===2025).reduce((s,d)=>s+d.rev,0);
+  const gaps=allKeys.map(k=>{const a=map8375[k]?.rev,b=map8586[k]?.rev;return(a&&b)?b-a:null;}).filter(v=>v!=null);
+  const avgGap=gaps.reduce((s,v)=>s+v,0)/gaps.length;
+  document.getElementById('insightsGrid').innerHTML=[
+    {cls:'insight-b',icon:'📈',headline:'Stratford Road consistently leads',body:`Stratford averages ${fmtK(avg8586)}/mo vs ${fmtK(avg8375)} for Reynolda — a ${((avg8586/avg8375-1)*100).toFixed(0)}% premium. Average monthly gap: ${fmt(avgGap)}.`},
+    {cls:'insight-both',icon:'🍂',headline:'Oct–Nov are peak months for both',body:`Reynolda's peak: ${peakA.m} ${peakA.y} at ${fmt(pk8375)}. Stratford's peak: ${peakB.m} ${peakB.y} at ${fmt(pk8586)}.`},
+    {cls:'insight-a',icon:'☀️',headline:`Summer dips ~${sumDip}% at Reynolda`,body:`May–July at Reynolda runs ~${sumDip}% below its monthly average. Stratford shows a shallower summer dip.`},
+    {cls:'insight-both',icon:'📊',headline:'Strong growth 2023 → 2025',body:`Reynolda grew ${((yr25a-yr23a)/yr23a*100).toFixed(1)}% from 2023 to 2025. Stratford grew ${((yr25b-yr23b)/yr23b*100).toFixed(1)}% over the same period.`},
+    {cls:'insight-a',icon:'💰',headline:'Fee ratio stable at ~13–15%',body:`Both locations consistently pay 13–15% of gross in combined ClubReady and other fees, scaling proportionally with revenue.`},
+    {cls:'insight-b',icon:'❄️',headline:'Stratford dominates winter',body:`Dec–Jan show the largest recurring gap between locations. Stratford's stronger winter membership retention drives the difference.`},
+  ].map(ins=>`<div class="insight-card ${ins.cls}"><span class="insight-icon">${ins.icon}</span><div class="insight-headline">${ins.headline}</div><div class="insight-body">${ins.body}</div></div>`).join('');
+
+  // BUILD ALL
+  refreshAllCharts = function() {
+    buildMainChart(); buildMomChart(); buildRollingChart(); buildGapChart();
+    buildYoyChart(); buildSeasonChart(); buildSeasonIndexChart();
+    buildFeeStackChart(); buildNetChart(); buildNetPctChart(); buildProjChart();
+  };
+  refreshAllCharts();
 }
 
-// ── NET ACH ───────────────────────────────────────────────────────────────
-function buildNetChart(){
-  const c=getThemeColors();
-  if(netChart)netChart.destroy();
-  const withNet=sortedKeys.filter(k=>map8375[k]?.net||map8586[k]?.net);
-  const labs=withNet.map(k=>{const d=map8375[k]||map8586[k];return d.m.slice(0,3)+' '+String(d.y).slice(2);});
-  netChart=new Chart(document.getElementById('netChart'),{
-    type:'line',
-    data:{labels:labs,datasets:[
-      {label:'Reynolda Net ACH',data:showA?withNet.map(k=>map8375[k]?.net||null):null,borderColor:c.locA,backgroundColor:'transparent',borderWidth:1.5,pointRadius:2.5,tension:0.3,spanGaps:false},
-      {label:'Stratford Net ACH',data:showB?withNet.map(k=>map8586[k]?.net||null):null,borderColor:c.locB,backgroundColor:'transparent',borderWidth:1.5,pointRadius:2.5,tension:0.3,spanGaps:false},
-    ]},
-    options:{responsive:true,plugins:{legend:{display:false},tooltip:{...tooltipDefaults(),callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw==null?'—':fmt(ctx.raw)}`}}},
-      scales:{x:{grid:{display:false},ticks:{color:c.tickColor,maxTicksLimit:10},border:{color:c.gridColor}},
-              y:{grid:{color:c.gridColor},ticks:{color:c.tickColor,callback:v=>fmtK(v)},border:{color:c.gridColor}}}}
-  });
-}
+// placeholder so global ref works before initDashboard runs
+let refreshAllCharts = () => {};
 
-// ── PROJECTION ────────────────────────────────────────────────────────────
-function linearRegression(ys){
-  const valid=ys.map((v,i)=>({x:i,y:v})).filter(p=>p.y!=null);
-  const n=valid.length,sumX=valid.reduce((s,p)=>s+p.x,0),sumY=valid.reduce((s,p)=>s+p.y,0);
-  const sumXY=valid.reduce((s,p)=>s+p.x*p.y,0),sumX2=valid.reduce((s,p)=>s+p.x*p.x,0);
-  const m=(n*sumXY-sumX*sumY)/(n*sumX2-sumX*sumX);
-  const b=(sumY-m*sumX)/n;
-  return{m,b,predict:x=>Math.max(0,m*x+b)};
-}
-function buildProjChart(){
-  const c=getThemeColors();
-  if(projChart)projChart.destroy();
-  // Use 2025-2026 data for trend
-  const trendKeys=sortedKeys.filter(k=>{const d=map8375[k]||map8586[k];return d.y>=2025;});
-  const trendA=trendKeys.map(k=>map8375[k]?.rev??null);
-  const trendB=trendKeys.map(k=>map8586[k]?.rev??null);
-  const regA=linearRegression(trendA),regB=linearRegression(trendB);
-  // Remaining 2026 months
-  const have2026=sortedKeys.filter(k=>{const d=map8375[k]||map8586[k];return d.y===2026;});
-  const lastMn=have2026.length?( map8375[have2026[have2026.length-1]]||map8586[have2026[have2026.length-1]]).mn:0;
-  const projMonths=months.slice(lastMn).map((_,i)=>({m:months[lastMn+i],mn:lastMn+i+1,y:2026}));
-  const projLabels=[...trendKeys.map(k=>{const d=map8375[k]||map8586[k];return d.m.slice(0,3)+' '+String(d.y).slice(2);}),...projMonths.map(p=>p.m.slice(0,3)+' 26')];
-  const actualA=[...trendA,...projMonths.map(()=>null)];
-  const actualB=[...trendB,...projMonths.map(()=>null)];
-  const n=trendKeys.length;
-  const estA=[...trendA.map(()=>null),...projMonths.map((_,i)=>+regA.predict(n+i).toFixed(0))];
-  const estB=[...trendB.map(()=>null),...projMonths.map((_,i)=>+regB.predict(n+i).toFixed(0))];
-  // Splice overlap at last actual
-  if(trendA[trendA.length-1]!=null){estA[trendA.length-1]=trendA[trendA.length-1];}
-  if(trendB[trendB.length-1]!=null){estB[trendB.length-1]=trendB[trendB.length-1];}
-  projChart=new Chart(document.getElementById('projChart'),{
-    type:'line',
-    data:{labels:projLabels,datasets:[
-      {label:'Reynolda Actual',data:actualA,borderColor:c.locA,backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,spanGaps:false},
-      {label:'Stratford Actual',data:actualB,borderColor:c.locB,backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:0.3,spanGaps:false},
-      {label:'Reynolda Est.',data:estA,borderColor:c.locA,backgroundColor:'transparent',borderWidth:2,borderDash:[5,4],pointRadius:3,tension:0.3,spanGaps:false},
-      {label:'Stratford Est.',data:estB,borderColor:c.locB,backgroundColor:'transparent',borderWidth:2,borderDash:[5,4],pointRadius:3,tension:0.3,spanGaps:false},
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:true,position:'top',labels:{color:c.tickColor,boxWidth:12,font:{size:10}}},tooltip:{...tooltipDefaults(),callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw==null?'—':fmt(ctx.raw)}`}}},
-      scales:{x:{grid:{color:c.gridColor},ticks:{color:c.tickColor,maxRotation:0},border:{color:c.gridColor}},
-              y:{grid:{color:c.gridColor},ticks:{color:c.tickColor,callback:v=>fmtK(v)},border:{color:c.gridColor},min:0}}}
-  });
-  // Projection KPIs
-  const projA=projMonths.map((_,i)=>+regA.predict(n+i).toFixed(0));
-  const projB=projMonths.map((_,i)=>+regB.predict(n+i).toFixed(0));
-  const haveRevA=have2026.reduce((s,k)=>s+(map8375[k]?.rev||0),0);
-  const haveRevB=have2026.reduce((s,k)=>s+(map8586[k]?.rev||0),0);
-  const fullYrA=haveRevA+projA.reduce((s,v)=>s+v,0);
-  const fullYrB=haveRevB+projB.reduce((s,v)=>s+v,0);
-  document.getElementById('projKpis').innerHTML=`
-    <div class="year-card"><div class="year-label">Reynolda 2026 Est.</div><div class="year-rev" style="color:var(--loc-a)">${fmtK(fullYrA)}</div></div>
-    <div class="year-card"><div class="year-label">Stratford 2026 Est.</div><div class="year-rev" style="color:var(--loc-b)">${fmtK(fullYrB)}</div></div>
-    <div class="year-card"><div class="year-label">Combined 2026 Est.</div><div class="year-rev" style="color:var(--text)">${fmtK(fullYrA+fullYrB)}</div></div>`;
-}
-
-// ── ANNUAL GRID ───────────────────────────────────────────────────────────
-const years=[2023,2024,2025,2026];
-const grid=document.getElementById('yearGrid');
-years.forEach(y=>{
-  const a=t8375.filter(d=>d.y===y).reduce((s,d)=>s+d.rev,0);
-  const b=t8586.filter(d=>d.y===y).reduce((s,d)=>s+d.rev,0);
-  const combined=a+b,mx=Math.max(a,b);
-  const pA=(a/mx*100).toFixed(1),pB=(b/mx*100).toFixed(1);
-  grid.innerHTML+=`<div class="year-card">
-    <div class="year-label">${y}</div>
-    <div class="year-rev-row"><span class="year-rev" style="color:var(--loc-a)">${fmtK(a)}</span><span class="year-loc-label">Reynolda</span></div>
-    <div class="year-bar-track"><div class="year-bar-fill loc-a" data-w="${pA}"></div></div>
-    <div class="year-rev-row" style="margin-top:12px"><span class="year-rev" style="color:var(--loc-b)">${fmtK(b)}</span><span class="year-loc-label">Stratford</span></div>
-    <div class="year-bar-track"><div class="year-bar-fill loc-b" data-w="${pB}"></div></div>
-    <div style="height:1px;background:var(--border);margin:12px 0 10px"></div>
-    <div class="year-rev-row"><span class="year-rev" style="font-size:1.05rem;color:var(--text)">${fmtK(combined)}</span><span class="year-loc-label">Combined</span></div>
-  </div>`;
-});
-const barObserver=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{if(e.isIntersecting)e.target.querySelectorAll('.year-bar-fill').forEach(b=>{b.style.width=b.dataset.w+'%';});});
-},{threshold:0.2});
-document.querySelectorAll('.year-card').forEach(c=>barObserver.observe(c));
-
-// ── FEE TABLE ─────────────────────────────────────────────────────────────
-const allYears=[2022,2023,2024,2025,2026];
-const feeBody=document.getElementById('feeTableBody');
-allYears.forEach(y=>{
-  const a=t8375.filter(d=>d.y===y),b=t8586.filter(d=>d.y===y);
-  if(!a.length&&!b.length)return;
-  const acf=a.reduce((s,d)=>s+d.cf,0),aof=a.reduce((s,d)=>s+d.of,0),at=acf+aof;
-  const bcf=b.reduce((s,d)=>s+d.cf,0),bof=b.reduce((s,d)=>s+d.of,0),bt=bcf+bof;
-  const diff=bt-at;
-  const badge=diff>0?`<span class="vs-badge vs-up">+${fmtK(diff)}</span>`:`<span class="vs-badge vs-down">${fmtK(diff)}</span>`;
-  feeBody.innerHTML+=`<tr><td style="font-family:'Syne',sans-serif;font-weight:700">${y}</td>
-    <td class="loc-a-val">${fmt(acf)}</td><td class="loc-a-val">${fmt(aof)}</td><td class="loc-a-val" style="font-weight:600">${fmt(at)}</td>
-    <td class="loc-b-val">${fmt(bcf)}</td><td class="loc-b-val">${fmt(bof)}</td><td class="loc-b-val" style="font-weight:600">${fmt(bt)}</td>
-    <td>${badge}</td></tr>`;
-});
-
-// ── INSIGHTS ──────────────────────────────────────────────────────────────
-const peakM8375=t8375.reduce((b,d)=>d.rev>b.rev?d:b);
-const peakM8586=t8586.reduce((b,d)=>d.rev>b.rev?d:b);
-const yr23a=t8375.filter(d=>d.y===2023).reduce((s,d)=>s+d.rev,0);
-const yr25a=t8375.filter(d=>d.y===2025).reduce((s,d)=>s+d.rev,0);
-const yr23b=t8586.filter(d=>d.y===2023).reduce((s,d)=>s+d.rev,0);
-const yr25b=t8586.filter(d=>d.y===2025).reduce((s,d)=>s+d.rev,0);
-const growA=((yr25a-yr23a)/yr23a*100).toFixed(1);
-const growB=((yr25b-yr23b)/yr23b*100).toFixed(1);
-const sumAvgA=t8375.filter(d=>[5,6,7].includes(d.mn)).reduce((s,d)=>s+d.rev,0)/t8375.filter(d=>[5,6,7].includes(d.mn)).length;
-const sumDip=((avgRev8375-sumAvgA)/avgRev8375*100).toFixed(0);
-const gapVals=sortedKeys.map(k=>{const a=map8375[k]?.rev,b=map8586[k]?.rev;return(a&&b)?b-a:null;}).filter(v=>v!=null);
-const avgGap=gapVals.reduce((s,v)=>s+v,0)/gapVals.length;
-const negGapMonths=gapVals.filter(v=>v<0).length;
-const insights=[
-  {cls:'insight-b',icon:'📈',headline:'Stratford Road consistently leads on revenue',body:`Stratford Rd averages ${fmtK(avgRev8586)}/mo vs ${fmtK(avgRev8375)}/mo for Reynolda — a sustained ${((avgRev8586/avgRev8375-1)*100).toFixed(0)}% revenue premium. The average monthly gap is ${fmt(avgGap)} in Stratford's favor.`},
-  {cls:'insight-both',icon:'🍂',headline:'Oct–Nov are peak months for both locations',body:`Both locations spike in fall. Reynolda's all-time peak: ${peakM8375.m} ${peakM8375.y} at ${fmt(peakRev8375)}. Stratford's best: ${peakM8586.m} ${peakM8586.y} at ${fmt(peakRev8586)}.`},
-  {cls:'insight-a',icon:'☀️',headline:`Summer revenue dips ~${sumDip}% at Reynolda`,body:`May–July at Reynolda runs ~${sumDip}% below its monthly average. Stratford shows a shallower summer dip — stronger year-round member retention.`},
-  {cls:'insight-both',icon:'📊',headline:'Strong growth 2023 → 2025',body:`Reynolda grew ${growA}% from 2023 to 2025. Stratford grew ${growB}% over the same period, both locations trending up despite seasonal swings.`},
-  {cls:'insight-a',icon:'💰',headline:'Fee ratio stable at ~13–15% of gross',body:`Both locations pay roughly 13–15% of gross in combined fees. This ratio has held steady throughout the reporting period, scaling proportionally with revenue.`},
-  {cls:'insight-b',icon:'❄️',headline:'Stratford dominates winter months',body:`In Dec–Jan, Stratford consistently outperforms Reynolda. The winter gap is the largest recurring performance differential between the two locations.`},
-];
-const ig=document.getElementById('insightsGrid');
-insights.forEach(ins=>{ig.innerHTML+=`<div class="insight-card ${ins.cls}"><span class="insight-icon">${ins.icon}</span><div class="insight-headline">${ins.headline}</div><div class="insight-body">${ins.body}</div></div>`;});
-
-// ── INIT ALL CHARTS ───────────────────────────────────────────────────────
-function refreshAllCharts(){
-  buildMainChart();buildMomChart();buildRollingChart();buildYoyChart();
-  buildGapChart();buildNetPctChart();buildSeasonChart();buildSeasonIndexChart();
-  buildFeeStackChart();buildNetChart();buildProjChart();
-}
-refreshAllCharts();
-
-} // end initDashboard()
 checkPassword();
 </script>
-</div><!-- /#dashboard -->
 </body>
 </html>
