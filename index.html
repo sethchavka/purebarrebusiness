@@ -1001,7 +1001,7 @@ function initDashboard() {
   document.getElementById('kpi-fees-total').textContent=fmtK(fees8375+fees8586);
 
   // FILTERED KEYS
-  function filteredKeys() {
+  var filteredKeys = function() {
     return allKeys.filter(k=>{
       if(currentRange==='all')return true;
       return String((map8375[k]||map8586[k]).y)===currentRange;
@@ -1009,7 +1009,7 @@ function initDashboard() {
   }
 
   // ── CHART BUILDERS ────────────────────────────────────────────────────
-  function buildMainChart(){
+  buildMainChart = function(){
     const c=getThemeColors();
     const fk=filteredKeys();
     const labs=fk.map(k=>allLabels[allKeys.indexOf(k)]);
@@ -1028,7 +1028,7 @@ function initDashboard() {
     document.getElementById('mainChart').ondblclick=()=>mainChart&&mainChart.resetZoom();
   }
 
-  function buildMomChart(){
+  buildMomChart = function(){
     const c=getThemeColors();
     if(momChart)momChart.destroy();
     function mom(data){return data.map((v,i)=>i===0||data[i-1]==null||v==null?null:+((v-data[i-1])/data[i-1]*100).toFixed(1));}
@@ -1042,7 +1042,7 @@ function initDashboard() {
       scales:{x:{...xScale({maxTicksLimit:14})},y:{...yScale(v=>v+'%')}}}});
   }
 
-  function buildRollingChart(){
+  buildRollingChart = function(){
     const c=getThemeColors();
     if(rollingChart)rollingChart.destroy();
     function roll3(data){return data.map((v,i)=>{if(i<2)return null;const s=[data[i-2],data[i-1],v];return s.some(x=>x==null)?null:+(s.reduce((a,b)=>a+b,0)/3).toFixed(0);});}
@@ -1055,7 +1055,7 @@ function initDashboard() {
       scales:{x:{...xScale({maxTicksLimit:14})},y:{...yScale()}}}});
   }
 
-  function buildGapChart(){
+  buildGapChart = function(){
     const c=getThemeColors();
     if(gapChart)gapChart.destroy();
     const labs=allFullLabels.map(l=>l.slice(0,3)+' '+l.slice(-2));
@@ -1068,7 +1068,7 @@ function initDashboard() {
       scales:{x:{...xScale({maxTicksLimit:14})},y:{...yScale()}}}});
   }
 
-  function buildYoyChart(){
+  buildYoyChart = function(){
     const c=getThemeColors();
     if(yoyChart)yoyChart.destroy();
     const yrs=[2023,2024,2025,2026].filter(y=>yoyYears.has(y));
@@ -1090,7 +1090,7 @@ function initDashboard() {
         scales:{x:{...xScale({})},y:{...yScale()}}}});
   }
 
-  function buildSeasonChart(){
+  buildSeasonChart = function(){
     const c=getThemeColors();
     if(seasonChart)seasonChart.destroy();
     function avgMo(data){return MOS.map((_,i)=>{const rows=data.filter(d=>d.mn===i+1);return rows.length?+(rows.reduce((s,d)=>s+d.rev,0)/rows.length).toFixed(0):null;});}
@@ -1102,7 +1102,7 @@ function initDashboard() {
       scales:{x:{...xScale({})},y:{...yScale()}}}});
   }
 
-  function buildSeasonIndexChart(){
+  buildSeasonIndexChart = function(){
     const c=getThemeColors();
     if(seasonIndexChart)seasonIndexChart.destroy();
     function idx(data){
@@ -1118,7 +1118,7 @@ function initDashboard() {
       scales:{x:{...xScale({})},y:{...yScale(v=>v)}}}});
   }
 
-  function buildFeeStackChart(){
+  buildFeeStackChart = function(){
     const c=getThemeColors();
     if(feeStackChart)feeStackChart.destroy();
     const yrs=[2023,2024,2025,2026];
@@ -1133,7 +1133,7 @@ function initDashboard() {
       scales:{x:{...xScale({}),stacked:true},y:{...yScale(),stacked:true}}}});
   }
 
-  function buildNetChart(){
+  buildNetChart = function(){
     const c=getThemeColors();
     if(netChart)netChart.destroy();
     const wn=allKeys.filter(k=>map8375[k]?.net||map8586[k]?.net);
@@ -1146,7 +1146,7 @@ function initDashboard() {
       scales:{x:{...xScale({maxTicksLimit:12})},y:{...yScale()}}}});
   }
 
-  function buildNetPctChart(){
+  buildNetPctChart = function(){
     const c=getThemeColors();
     if(netPctChart)netPctChart.destroy();
     const wn=allKeys.filter(k=>map8375[k]?.net||map8586[k]?.net);
@@ -1161,7 +1161,7 @@ function initDashboard() {
       scales:{x:{...xScale({maxTicksLimit:12})},y:{...yScale(v=>v+'%'),min:70,max:100}}}});
   }
 
-  function buildProjChart(){
+  buildProjChart = function(){
     const c=getThemeColors();
     if(projChart)projChart.destroy();
     function linReg(ys){
@@ -1268,6 +1268,17 @@ function initDashboard() {
 
 // placeholder so global ref works before initDashboard runs
 var refreshAllCharts = () => {};
+var buildMainChart   = () => {};
+var buildMomChart    = () => {};
+var buildRollingChart= () => {};
+var buildGapChart    = () => {};
+var buildYoyChart    = () => {};
+var buildSeasonChart = () => {};
+var buildSeasonIndexChart = () => {};
+var buildFeeStackChart = () => {};
+var buildNetChart    = () => {};
+var buildNetPctChart = () => {};
+var buildProjChart   = () => {};
 
 checkPassword();
 </script>
